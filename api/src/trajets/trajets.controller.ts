@@ -78,6 +78,23 @@ export class TrajetsController {
     return this.trajets.partager(session, jetonSuivi, dto);
   }
 
+  /**
+   * Numéro du chauffeur, une fois la course terminée — pour un objet
+   * oublié. Volontairement hors du scan : un numéro donné avant la
+   * course serait récupérable sans jamais monter dans le véhicule.
+   */
+  @Get(':jetonSuivi/contact-chauffeur')
+  @Throttle({ default: { limit: 20, ttl: 3_600_000 } })
+  @ApiOperation({ summary: 'Numero du chauffeur (trajet termine)' })
+  @ApiResponse({ status: 403, description: 'Le trajet appartient a une autre session' })
+  @ApiResponse({ status: 409, description: 'Trajet non termine' })
+  async contactChauffeur(
+    @SessionPassager() session: string,
+    @Param('jetonSuivi') jetonSuivi: string,
+  ) {
+    return this.trajets.contactChauffeur(session, jetonSuivi);
+  }
+
   @Post(':jetonSuivi/fin')
   @HttpCode(200)
   @ApiOperation({ summary: 'Terminer le trajet' })

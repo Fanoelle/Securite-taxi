@@ -275,4 +275,63 @@ describe('TrajetsService', () => {
       await expect(service.suivrePublic('INCONNU')).rejects.toThrow(NotFoundException);
     });
   });
+
+  /**
+   * Le numéro du chauffeur est une donnée personnelle : il ne sort que
+   * pour la personne qui a réellement fait la course, et seulement une
+   * fois celle-ci terminée.
+   */
+  describe('contactChauffeur', () => {
+    const termine = {
+      id: 'tr-1', etat: 'termine', session_passager: 'session-du-passager',
+      termine_le: new Date(), nom: 'NGONO', prenom: 'Paul',
+      telephone: '+237699452108',
+    };
+
+    it('donne le numéro au passager après le trajet', async () => {
+      base.premier.mockResolvedValue(termine);
+
+      const r = await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
+
+      // Le numéro est mis en forme pour être lu et composé à la main.
+      expect(r.telephone.replace(/\s/g, '')).toBe('+237699452108');
+      expect(r.nom).toBe('NGONO');
+    });
+
+    it('trace la consultation dans le journal d\'audit', async () => {
+      base.premier.mockResolvedValue(termine);
+
+      await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
+
+      const ecriture = base.requete.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('journal_audit'),
+      );
+      expect(ecriture).toBeDefined();
+      expect(ecriture![0]).toContain('trajet.contact_chauffeur');
+    });
+
+    it('refuse tant que le trajet n\'est pas terminé', async () => {
+      base.premier.mockResolvedValue({ ...termine, etat: 'en_cours' });
+
+      await expect(
+        service.contactChauffeur('session-du-passager', 'ABC123XYZ4'),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('refuse une session étrangère — le proche n\'y a pas droit', async () => {
+      base.premier.mockResolvedValue(termine);
+
+      await expect(
+        service.contactChauffeur('une-autre-session', 'ABC123XYZ4'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('refuse un trajet inconnu', async () => {
+      base.premier.mockResolvedValue(null);
+
+      await expect(
+        service.contactChauffeur('session-du-passager', 'INCONNU'),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
 });

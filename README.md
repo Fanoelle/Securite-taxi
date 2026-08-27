@@ -100,6 +100,16 @@ Son identité tient dans un **jeton de session** que son navigateur
 génère et garde. Ce jeton n'authentifie rien : il relie un trajet à ses
 contacts et empêche d'agir sur le trajet d'un autre.
 
+**Objet oublié.** Une fois la course terminée, le passager obtient le
+numéro du chauffeur — cliquable pour appeler — ou décrit l'objet, et le
+chauffeur reçoit un SMS auquel il peut répondre.
+
+Le numéro ne sort qu'à trois conditions, et aucune n'est accessoire :
+la course doit être terminée, la session doit être celle qui l'a faite
+(un proche qui suit le trajet n'y a pas droit), et chaque consultation
+est écrite dans `journal_audit`. Un numéro donné au scan serait
+récupérable en masse par quiconque scanne des QR sans jamais monter.
+
 ### Le proche — un lien reçu par SMS
 
 Il ouvre `/t/:jeton` et voit le trajet se mettre à jour. Pas de compte
@@ -182,7 +192,7 @@ securite-taxi-cameroun/
 └── test-visuel/      banc d'essai montrant les appels HTTP
 ```
 
-**7 000 lignes de TypeScript, 19 tables, 156 tests.**
+**7 000 lignes de TypeScript, 19 tables, 161 tests.**
 
 ### Choix techniques
 
@@ -231,7 +241,7 @@ Quatre niveaux, du plus rapide au plus manuel. Guide détaillé :
 ### 1. Tests automatiques
 
 ```bash
-npm test              # 156 tests, ~10 s, aucune base requise
+npm test              # 161 tests, ~10 s, aucune base requise
 npm run typecheck
 ```
 
@@ -327,6 +337,13 @@ le seul cas où quelqu'un appuie en boucle est celui où il panique.
 
 **La session passager** n'authentifie rien et ne donne accès qu'à ce
 qu'elle a créé.
+
+**Le numéro du chauffeur** n'apparaît ni au scan, ni dans le suivi
+partagé avec les proches. Il n'est délivré qu'à la session ayant fait
+la course, une fois celle-ci terminée, et chaque consultation est
+tracée. C'est un compromis assumé : le passager qui a oublié quelque
+chose doit pouvoir joindre le chauffeur, mais son numéro personnel ne
+peut plus être repris une fois diffusé.
 
 ---
 

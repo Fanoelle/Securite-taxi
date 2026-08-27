@@ -261,7 +261,23 @@ ${!fini ? `
   Cette page se met à jour toute seule.</p>
 </div>` : ''}
 
-${fini ? `<div class="carte seule"><p class="muet">Ce trajet est terminé.</p></div>` : ''}
+${fini ? `
+<div class="carte seule" id="zoneFin">
+  <p class="muet">Ce trajet est terminé.</p>
+  <div id="oubli" hidden>
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.8px;
+               color:var(--gris);margin:16px 0 8px">Un oubli dans le taxi ?</h3>
+    <button class="b2" id="voirContact">Voir le numéro du chauffeur</button>
+    <div id="contact"></div>
+
+    <div style="margin-top:18px;padding-top:16px;border-top:1px solid #EDE9E0">
+      <label for="objet">Ou décrire l'objet oublié</label>
+      <input id="objet" placeholder="Sac à dos noir, ordinateur portable">
+      <button class="b2" id="declarer">Prévenir le chauffeur par SMS</button>
+      <p class="muet" id="retourObjet" style="margin-top:10px"></p>
+    </div>
+  </div>
+</div>` : ''}
 
 <p class="pied">En cas de danger immédiat, appelez le 117.</p>`;
 
@@ -372,8 +388,62 @@ function activerCommandes(){
  * donc à l'API quel trajet appartient à cette session, et on ne montre
  * les commandes que si c'est celui-ci.
  */
+/**
+ * Le numéro du chauffeur, réservé à celui qui a fait la course.
+ * Le serveur revérifie la session et l'état du trajet : cet affichage
+ * n'est qu'une commodité, jamais le contrôle d'accès.
+ */
+function activerOubli(){
+  const z=$('oubli');if(!z)return;
+  z.hidden=false;
+  $('voirContact').onclick=async()=>{
+    const b=$('voirContact');b.disabled=true;b.textContent='…';
+    try{
+      const r=await fetch('/api/trajets/'+J+'/contact-chauffeur',{headers:entetes});
+      const d=await r.json();
+      if(r.ok){
+        b.style.display='none';
+        $('contact').innerHTML=
+          '<div class="ligne"><dt>Chauffeur</dt><dd>'+
+          (d.prenom||'')+' '+(d.nom||'')+'</dd></div>'+
+          '<div class="ligne"><dt>Téléphone</dt><dd><a href="tel:'+
+          String(d.telephone).replace(/\\s/g,'')+'" style="color:var(--vert)">'+
+          d.telephone+'</a></dd></div>'+
+          '<p class="muet" style="margin-top:10px">'+d.message+'</p>';
+      }else{b.disabled=false;b.textContent='Voir le numéro du chauffeur';
+        $('contact').innerHTML='<p class="muet" style="margin-top:10px">'+
+          (d.message||'Indisponible.')+'</p>'}
+    }catch(e){b.disabled=false;b.textContent='Voir le numéro du chauffeur'}
+  };
+
+  // Déclarer l'objet plutôt qu'appeler : le chauffeur reçoit la
+  // description par SMS et peut répondre, ce qui laisse une trace.
+  $('declarer').onclick=async()=>{
+    const description=$('objet').value.trim();
+    if(!description){$('retourObjet').textContent=
+      'Décrivez brièvement ce que vous avez oublié.';return}
+    const b=$('declarer');b.disabled=true;b.textContent='Envoi…';
+    try{
+      const r=await fetch('/api/objets-perdus/trajet/'+J,{method:'POST',
+        headers:entetes,body:JSON.stringify({description})});
+      const d=await r.json();
+      b.disabled=false;b.textContent='Prévenir le chauffeur par SMS';
+      if(r.ok){$('retourObjet').textContent='✓ '+d.message;$('objet').value=''}
+      else $('retourObjet').textContent=d.message||'Envoi impossible.';
+    }catch(e){b.disabled=false;b.textContent='Prévenir le chauffeur par SMS';
+      $('retourObjet').textContent='Pas de réseau.'}
+  };
+}
+
 async function determinerRole(){
-  if(FINI||!s)return demarrerSuiviProche();
+  // Trajet terminé : on propose le contact dès qu'une session existe.
+  // C'est le serveur qui vérifie qu'elle est bien la bonne — un proche
+  // qui cliquerait obtiendrait un 403, pas un numéro.
+  if(FINI){
+    if(s)activerOubli();
+    return;
+  }
+  if(!s)return demarrerSuiviProche();
   try{
     const r=await fetch('/api/trajets/courant',{headers:{'x-session-passager':s}});
     const t=await r.text();

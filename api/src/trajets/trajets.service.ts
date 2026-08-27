@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { BaseService } from '../base/base.service';
 import { SmsService } from '../sms/sms.service';
 import {
-  genererJeton, normaliserTelephone, formaterPlaque,
+  genererJeton, normaliserTelephone, formaterPlaque, formaterTelephone,
 } from '../commun/format';
 import {
   DemarrageTrajetDto, EnvoiPositionsDto, PartageTrajetDto, FinTrajetDto,
@@ -381,6 +381,63 @@ export class TrajetsService {
    * appelante. Sans ce controle, connaitre un jeton de suivi suffirait a
    * piloter le trajet de quelqu'un d'autre.
    */
+  /**
+   * Numéro du chauffeur, pour un objet oublié.
+   *
+   * Trois conditions, et aucune n'est accessoire :
+   *
+   *  1. Seule la session qui a fait la course l'obtient. Le proche qui
+   *     suit le trajet par SMS n'y a pas droit.
+   *  2. Le trajet doit être terminé. Un numéro donné au scan serait
+   *     récupérable en masse par quiconque scanne des QR, sans jamais
+   *     monter dans le véhicule.
+   *  3. La consultation est tracée. Ce numéro est une donnée personnelle
+   *     du chauffeur : savoir qui y a accédé et quand est le minimum
+   *     qu'on lui doit.
+   */
+  async contactChauffeur(session: string, jetonSuivi: string) {
+    const trajet = await this.base.premier<any>(
+      `SELECT t.id, t.etat, t.session_passager, t.termine_le,
+              c.nom, c.prenom, cp.telephone
+         FROM trajet t
+         JOIN chauffeur c ON c.id = t.chauffeur_id
+         JOIN compte   cp ON cp.id = c.compte_id
+        WHERE t.jeton_suivi = $1`,
+      [jetonSuivi.trim()],
+    );
+
+    if (!trajet) throw new NotFoundException('Trajet introuvable.');
+
+    if (trajet.session_passager !== session) {
+      this.logger.warn(
+        `Session ${session.slice(0, 8)}… a demandé le contact du trajet ${jetonSuivi}`,
+      );
+      throw new ForbiddenException('Ce trajet n\'appartient pas à cette session.');
+    }
+
+    if (trajet.etat !== 'termine') {
+      throw new ConflictException(
+        'Le numéro du chauffeur est disponible une fois le trajet terminé.',
+      );
+    }
+
+    await this.base.requete(
+      `INSERT INTO journal_audit (action, entite, entite_id, details)
+       VALUES ('trajet.contact_chauffeur', 'trajet', $1, $2)`,
+      [trajet.id, JSON.stringify({ jetonSuivi: trajet.jeton_suivi ?? jetonSuivi })],
+    );
+
+    return {
+      nom: trajet.nom,
+      prenom: trajet.prenom,
+      telephone: formaterTelephone(trajet.telephone),
+      message:
+        'Appelez le chauffeur si vous avez oublié quelque chose. ' +
+        'Vous pouvez aussi déclarer l\'objet : il recevra un SMS avec ' +
+        'votre description.',
+    };
+  }
+
   private async trajetDeLaSession(session: string, jetonSuivi: string) {
     const trajet = await this.base.premier<any>(
       `SELECT id, etat, session_passager, demarre_le
