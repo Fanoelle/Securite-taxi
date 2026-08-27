@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Narrow:wght@600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: Archivo, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #1B5E4A; } a:hover { color: #134536; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F5F3EE; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="background: #0E3B2E; padding: 52px 22px 18px; display: flex; flex-direction: column; gap: 13px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div style="color: #FFFFFF; font-size: 17px; font-weight: 700">Mon inscription</div>
+      <div style="color: #8FB3A5; font-size: 13px; font-weight: 600">Étape 3 / 4</div>
+    </div>
+    <div style="display: flex; gap: 5px">
+      <div style="flex-grow: 1; height: 4px; border-radius: 2px; background: #C9A227"></div>
+      <div style="flex-grow: 1; height: 4px; border-radius: 2px; background: #C9A227"></div>
+      <div style="flex-grow: 1; height: 4px; border-radius: 2px; background: #C9A227"></div>
+      <div style="flex-grow: 1; height: 4px; border-radius: 2px; background: #2A5748"></div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px 22px 0; gap: 17px">
+
+    <div>
+      <div style="font-size: 19px; font-weight: 800; color: #14261F; letter-spacing: -0.2px">Documents du véhicule</div>
+      <div style="font-size: 13.5px; color: #6B6459; margin-top: 4px; line-height: 1.45">Photographiez vos documents. Ils ne sont jamais montrés aux passagers.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label style="font-size: 11px; font-weight: 700; color: #8A8377; letter-spacing: 1.1px; text-transform: uppercase">Plaque d'immatriculation</label>
+      <div style="background: #FFFFFF; border: 1.5px solid #1B5E4A; border-radius: 5px; padding: 14px 16px">
+        <span style="font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 25px; font-weight: 700; color: #14261F; letter-spacing: 3px">LT 452 AB</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 9px">
+      <label style="font-size: 11px; font-weight: 700; color: #8A8377; letter-spacing: 1.1px; text-transform: uppercase">Pièces à fournir</label>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2DED4; border-radius: 5px; padding: 13px 15px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 38px; height: 38px; border-radius: 4px; background: #E8F2ED; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E4A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div style="flex-grow: 1; min-width: 0">
+          <div style="font-size: 14.5px; font-weight: 700; color: #14261F">Carte nationale d'identité</div>
+          <div style="font-size: 12.5px; color: #1B5E4A; font-weight: 600">Recto et verso envoyés</div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2DED4; border-radius: 5px; padding: 13px 15px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 38px; height: 38px; border-radius: 4px; background: #E8F2ED; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B5E4A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div style="flex-grow: 1; min-width: 0">
+          <div style="font-size: 14.5px; font-weight: 700; color: #14261F">Permis de conduire</div>
+          <div style="font-size: 12.5px; color: #1B5E4A; font-weight: 600">Envoyé</div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1.5px dashed #C4BDB0; border-radius: 5px; padding: 13px 15px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 38px; height: 38px; border-radius: 4px; background: #F0EDE6; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8377" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7.5L14.5 3z"/><path d="M14 3v5h5"/></svg>
+        </div>
+        <div style="flex-grow: 1; min-width: 0">
+          <div style="font-size: 14.5px; font-weight: 700; color: #14261F">Carte grise</div>
+          <div style="font-size: 12.5px; color: #6B6459">Appuyez pour photographier</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8377" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M9 5l7 7-7 7"/></svg>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1.5px dashed #C4BDB0; border-radius: 5px; padding: 13px 15px; display: flex; align-items: center; gap: 12px">
+        <div style="width: 38px; height: 38px; border-radius: 4px; background: #F0EDE6; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8377" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7.5L14.5 3z"/><path d="M14 3v5h5"/></svg>
+        </div>
+        <div style="flex-grow: 1; min-width: 0">
+          <div style="font-size: 14.5px; font-weight: 700; color: #14261F">Licence de transport</div>
+          <div style="font-size: 12.5px; color: #6B6459">Facultatif · accélère la validation</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8377" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0"><path d="M9 5l7 7-7 7"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding: 16px 22px 26px; display: flex; flex-direction: column; gap: 10px; background: #F5F3EE; flex-shrink: 0">
+    <button style="background: #1B5E4A; border: none; border-radius: 5px; padding: 17px; color: #FFFFFF; font-family: Archivo, sans-serif; font-size: 16px; font-weight: 700; cursor: pointer">
+      Continuer
+    </button>
+    <div style="font-size: 11.5px; color: #8A8377; text-align: center; line-height: 1.45">Vos documents sont chiffrés et vus uniquement par l'agent validateur.</div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

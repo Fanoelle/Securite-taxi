@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sécurité Taxi — Test réel</title>
+<style>
+  :root {
+    --vert: #0E3B2E; --vert-clair: #8FB3A5; --sable: #E7E3DA;
+    --encre: #14261F; --or: #C9A227; --rouge: #B3261E; --gris: #6B6459;
+    --papier: #F5F3EE;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--sable); color: var(--encre);
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    background: var(--vert); color: #fff; padding: 20px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.2px; }
+  header p { margin: 4px 0 0; color: var(--vert-clair); font-size: 12.5px; }
+  .etat-api { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 99px;
+              background: rgba(255,255,255,.12); }
+  .etat-api.ok { background: #1E7A4C; }
+  .etat-api.ko { background: var(--rouge); }
+
+  .zone { display: grid; grid-template-columns: 390px 1fr; gap: 24px;
+          padding: 24px; align-items: start; }
+  @media (max-width: 900px) { .zone { grid-template-columns: 1fr; } }
+
+  /* ---- Téléphone ---- */
+  .tel { width: 390px; max-width: 100%; background: var(--papier);
+         border: 1px solid #C4BDB0; border-radius: 14px; overflow: hidden;
+         box-shadow: 0 4px 20px rgba(0,0,0,.10); min-height: 700px;
+         display: flex; flex-direction: column; }
+  .tel-barre { background: var(--vert); color: #fff; padding: 14px 18px;
+               font-size: 14px; font-weight: 700; display: flex;
+               justify-content: space-between; align-items: center; }
+  .tel-corps { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  h2 { font-size: 15px; margin: 0 0 4px; font-weight: 700; }
+  label { display: block; font-size: 12px; font-weight: 700; color: var(--gris);
+          text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 12px 14px; font-size: 16px; font-family: inherit;
+    border: 1px solid #C4BDB0; border-radius: 8px; background: #fff; color: var(--encre);
+  }
+  input:focus { outline: 2px solid var(--vert); border-color: var(--vert); }
+  button {
+    width: 100%; padding: 14px; font-size: 15px; font-weight: 700; font-family: inherit;
+    border: 0; border-radius: 8px; background: var(--vert); color: #fff; cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: #14523E; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.secondaire { background: #fff; color: var(--vert); border: 1.5px solid var(--vert); }
+  button.danger { background: var(--rouge); font-size: 17px; padding: 22px; letter-spacing: .5px; }
+  button.danger:hover:not(:disabled) { background: #8E1D17; }
+  button.discret { background: transparent; color: var(--gris); font-weight: 600;
+                   text-decoration: underline; padding: 8px; }
+
+  /* ---- Fiche chauffeur ---- */
+  .fiche { border-radius: 10px; overflow: hidden; border: 1px solid #C4BDB0; background: #fff; }
+  .fiche-bandeau { padding: 14px 16px; color: #fff; font-weight: 800; font-size: 15px;
+                   letter-spacing: .5px; display: flex; align-items: center; gap: 8px; }
+  .fiche-bandeau.verifie { background: #1E7A4C; }
+  .fiche-bandeau.non-verifie { background: var(--or); color: #3D2E00; }
+  .fiche-bandeau.refuse { background: var(--rouge); }
+  .fiche-corps { padding: 16px; }
+  .fiche-nom { font-size: 20px; font-weight: 800; margin: 0 0 2px; }
+  .fiche-plaque { font-family: ui-monospace, monospace; font-size: 17px; font-weight: 700;
+                  background: var(--sable); padding: 6px 10px; border-radius: 6px;
+                  display: inline-block; margin: 8px 0; }
+  .ligne { display: flex; justify-content: space-between; gap: 12px;
+           padding: 7px 0; border-top: 1px solid #EDE9E0; font-size: 13.5px; }
+  .ligne span:first-child { color: var(--gris); }
+  .ligne span:last-child { font-weight: 600; text-align: right; }
+  .avertissement { background: #FFF6E0; border-left: 3px solid var(--or);
+                   padding: 12px 14px; font-size: 13px; line-height: 1.5; margin-top: 12px;
+                   border-radius: 0 6px 6px 0; }
+
+  .banniere-alerte { background: var(--rouge); color: #fff; padding: 14px 16px;
+                     border-radius: 8px; font-weight: 700; font-size: 14px; line-height: 1.45; }
+  .encart { background: #fff; border: 1px solid #C4BDB0; border-radius: 8px; padding: 14px; }
+  .encart h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase;
+               letter-spacing: .8px; color: var(--gris); }
+  .muet { color: var(--gris); font-size: 13px; line-height: 1.55; }
+
+  /* ---- Journal ---- */
+  .journal { background: #fff; border: 1px solid #C4BDB0; border-radius: 10px;
+             overflow: hidden; position: sticky; top: 96px; }
+  .journal-tete { background: var(--encre); color: #fff; padding: 12px 16px;
+                  font-size: 13px; font-weight: 700; display: flex;
+                  justify-content: space-between; align-items: center; }
+  .journal-corps { max-height: 620px; overflow-y: auto; padding: 8px; }
+  .evt { border-left: 3px solid #DDD; padding: 9px 12px; margin-bottom: 6px;
+         font-size: 12.5px; background: var(--papier); border-radius: 0 6px 6px 0; }
+  .evt.ok { border-color: #1E7A4C; }
+  .evt.ko { border-color: var(--rouge); }
+  .evt.info { border-color: var(--or); }
+  .evt-tete { font-weight: 700; display: flex; justify-content: space-between; gap: 10px; }
+  .evt-code { font-family: ui-monospace, monospace; font-size: 11.5px; }
+  .evt-url { font-family: ui-monospace, monospace; color: var(--gris);
+             font-size: 11.5px; word-break: break-all; margin-top: 3px; }
+  .evt pre { margin: 6px 0 0; font-size: 11px; line-height: 1.45; white-space: pre-wrap;
+             word-break: break-word; max-height: 190px; overflow-y: auto;
+             background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #EDE9E0; }
+  .aide { padding: 14px 24px; background: #FFF6E0; border-bottom: 1px solid #E8DCBA;
+          font-size: 13px; line-height: 1.6; }
+  .aide code { background: #fff; padding: 2px 6px; border-radius: 4px;
+               font-size: 12.5px; border: 1px solid #E0D8C4; }
+  .pastille { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px;
+              border-radius: 99px; background: var(--sable); color: var(--gris); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Sécurité Taxi Cameroun — test réel</h1>
+    <p>Chaque bouton appelle la vraie API et écrit dans la vraie base.</p>
+  </div>
+  <div id="etatApi" class="etat-api">vérification…</div>
+</header>
+
+<div class="aide">
+  <strong>Pour commencer :</strong> lancez <code>npm run jeu-de-donnees</code> dans
+  <code>api/</code>, copiez le QR affiché (ex. <code>U7VA7J5</code>) et collez-le ci-dessous.
+  Le panneau de droite montre chaque appel HTTP en direct.
+</div>
+
+<div class="zone">
+
+  <!-- ================= TÉLÉPHONE ================= -->
+  <div class="tel">
+    <div class="tel-barre">
+      <span id="titreEcran">Scanner un taxi</span>
+      <span class="pastille" id="pastilleSession" style="background:rgba(255,255,255,.15);color:#fff">session —</span>
+    </div>
+    <div class="tel-corps">
+
+      <!-- Écran 1 : scan -->
+      <section id="ecranScan">
+        <h2>Vous montez dans un taxi</h2>
+        <p class="muet">Saisissez le code du QR collé dans le véhicule. Aucun compte n'est nécessaire.</p>
+        <div style="margin-top:14px">
+          <label for="champQr">Code du QR</label>
+          <input id="champQr" placeholder="U7VA7J5" autocomplete="off" spellcheck="false">
+        </div>
+        <div style="margin-top:12px"><button id="btnScan">Vérifier ce taxi</button></div>
+        <div style="margin-top:8px">
+          <button class="discret" id="btnQrInconnu">Essayer un code inconnu (doit être refusé)</button>
+        </div>
+      </section>
+
+      <!-- Écran 2 : fiche + trajet -->
+      <section id="ecranFiche" hidden>
+        <div id="zoneFiche"></div>
+
+        <div id="zoneAvantTrajet" style="margin-top:14px">
+          <button id="btnDemarrer">Démarrer le trajet</button>
+          <div style="margin-top:8px"><button class="secondaire" id="btnRetour">Scanner un autre code</button></div>
+        </div>
+
+        <div id="zoneTrajet" hidden style="margin-top:14px; display:flex; flex-direction:column; gap:12px">
+          <div class="encart">
+            <h3>Trajet en cours</h3>
+            <div class="ligne"><span>Lien de suivi</span><span id="infoJeton" class="evt-code">—</span></div>
+            <div class="ligne"><span>Positions envoyées</span><span id="infoPositions">0</span></div>
+            <div class="ligne"><span>Proches prévenus</span><span id="infoProches">0</span></div>
+          </div>
+
+          <div id="zoneAlerteActive" hidden>
+            <div class="banniere-alerte">
+              🚨 Alerte déclenchée — <span id="infoDestinataires">0</span> personne(s) prévenue(s).
+              Vos proches et l'autorité reçoivent votre position.
+            </div>
+            <div style="margin-top:8px"><button class="secondaire" id="btnAnnulerAlerte">Annuler l'alerte (fausse manœuvre)</button></div>
+          </div>
+
+          <button class="danger" id="btnAlerte">🚨 ALERTE D'URGENCE</button>
+
+          <div class="encart">
+            <h3>Prévenir un proche</h3>
+            <label for="champNom">Nom</label>
+            <input id="champNom" value="Maman" autocomplete="off">
+            <label for="champTel" style="margin-top:10px">Téléphone</label>
+            <input id="champTel" value="699452108" autocomplete="off">
+            <div style="margin-top:10px"><button class="secondaire" id="btnPartager">Envoyer le lien par SMS</button></div>
+          </div>
+
+          <button class="secondaire" id="btnPosition">Envoyer ma position</button>
+          <button class="secondaire" id="btnSuivi">Voir ce que voit le proche</button>
+          <button id="btnTerminer">Terminer le trajet</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ================= JOURNAL ================= -->
+  <div class="journal">
+    <div class="journal-tete">
+      <span>Ce qui part vers l'API</span>
+      <button class="discret" id="btnVider"
+              style="width:auto;color:#8FB3A5;padding:0;font-size:12px">vider</button>
+    </div>
+    <div class="journal-corps" id="journal">
+      <p class="muet" style="padding:14px">Les appels HTTP s'afficheront ici.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+
+// La session passager : un jeton opaque gardé dans le navigateur.
+// Il n'authentifie rien — il relie seulement un trajet à ses contacts.
+let session = localStorage.getItem('session-passager');
+if (!session) {
+  session = 'test-visuel-' + crypto.randomUUID().replaceAll('-', '');
+  localStorage.setItem('session-passager', session);
+}
+document.getElementById('pastilleSession').textContent = 'session ' + session.slice(-6);
+
+let etat = { qr: null, jetonSuivi: null, positions: 0, proches: 0, alerte: false };
+
+const $ = (id) => document.getElementById(id);
+
+function journaliser(methode, url, statut, corps, note) {
+  const j = $('journal');
+  if (j.querySelector('.muet')) j.innerHTML = '';
+  const ok = statut >= 200 && statut < 300;
+  const div = document.createElement('div');
+  div.className = 'evt ' + (note === 'attendu' ? 'info' : ok ? 'ok' : 'ko');
+  const heure = new Date().toLocaleTimeString('fr-FR');
+  const marque = note === 'attendu' ? '✓ refus attendu' : ok ? '✓' : '✗';
+  div.innerHTML =
+    `<div class="evt-tete"><span>${marque} ${methode}</span>` +
+    `<span class="evt-code">${statut} · ${heure}</span></div>` +
+    `<div class="evt-url">${url.replace(API, '/api')}</div>` +
+    `<pre>${JSON.stringify(corps, null, 2)}</pre>`;
+  j.prepend(div);
+}
+
+async function appel(methode, chemin, corps, note) {
+  const url = API + chemin;
+  const options = {
+    method: methode,
+    headers: { 'Content-Type': 'application/json', 'x-session-passager': session },
+  };
+  if (corps) options.body = JSON.stringify(corps);
+  try {
+    const r = await fetch(url, options);
+    const texte = await r.text();
+    let donnees; try { donnees = JSON.parse(texte); } catch { donnees = texte; }
+    journaliser(methode, url, r.status, donnees, note);
+    return { ok: r.ok, statut: r.status, donnees };
+  } catch (e) {
+    journaliser(methode, url, 0, { erreur: String(e), indice: 'API injoignable ? Lancez npm run dev' });
+    return { ok: false, statut: 0, donnees: null };
+  }
+}
+
+// ---- Fiche du chauffeur, telle que la voit le passager ----
+function afficherFiche(d) {
+  const s = d.statut || {};
+  const classe = s.verifie ? 'verifie' : 'non-verifie';
+  const v = d.vehicule || {}, c = d.chauffeur || {};
+  $('zoneFiche').innerHTML = `
+    <div class="fiche">
+      <div class="fiche-bandeau ${classe}">
+        ${s.verifie ? '✓' : '⚠'} ${s.libelle || '—'}
+      </div>
+      <div class="fiche-corps">
+        <p class="fiche-nom">${(c.prenom || '') + ' ' + (c.nom || '')}</p>
+        <div class="fiche-plaque">${v.plaque || '—'}</div>
+        <div class="ligne"><span>Véhicule</span><span>${v.description || '—'}</span></div>
+        <div class="ligne"><span>Licence</span><span>${c.referenceLicence || '—'}</span></div>
+        <div class="ligne"><span>Validé par</span><span>${s.autorite || '—'}</span></div>
+        <div class="ligne"><span>Ville</span><span>${d.ville || '—'}</span></div>
+        <div class="ligne"><span>Plaque recoupée</span><span>${v.plaqueRecoupee ? 'oui' : 'non'}</span></div>
+        ${s.avertissement ? `<div class="avertissement">${s.avertissement}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function afficherRefus(message) {
+  $('zoneFiche').innerHTML = `
+    <div class="fiche">
+      <div class="fiche-bandeau refuse">✗ CODE NON RECONNU</div>
+      <div class="fiche-corps"><p class="muet" style="margin:0">${message}</p></div>
+    </div>`;
+}
+
+function versEcran(nom) {
+  $('ecranScan').hidden = nom !== 'scan';
+  $('ecranFiche').hidden = nom !== 'fiche';
+  $('titreEcran').textContent = nom === 'scan' ? 'Scanner un taxi' : 'Ce taxi';
+}
+
+function rafraichirTrajet() {
+  $('infoJeton').textContent = etat.jetonSuivi ? etat.jetonSuivi.slice(0, 12) + '…' : '—';
+  $('infoPositions').textContent = etat.positions;
+  $('infoProches').textContent = etat.proches;
+  $('zoneAlerteActive').hidden = !etat.alerte;
+  $('btnAlerte').hidden = etat.alerte;
+}
+
+// ---- Actions ----
+$('btnScan').onclick = async () => {
+  const jeton = $('champQr').value.trim();
+  if (!jeton) return;
+  const r = await appel('GET', '/scan/' + encodeURIComponent(jeton));
+  if (r.ok) {
+    etat.qr = jeton;
+    afficherFiche(r.donnees);
+    $('zoneAvantTrajet').hidden = false;
+    $('zoneTrajet').hidden = true;
+    versEcran('fiche');
+  } else if (r.statut === 404) {
+    afficherRefus((r.donnees && r.donnees.message) || 'Code inconnu.');
+    $('zoneAvantTrajet').hidden = true;
+    $('zoneTrajet').hidden = true;
+    versEcran('fiche');
+  }
+};
+
+$('btnQrInconnu').onclick = async () => {
+  const r = await appel('GET', '/scan/CODEFAUX', null, 'attendu');
+  afficherRefus((r.donnees && r.donnees.message) || 'Code inconnu.');
+  $('zoneAvantTrajet').hidden = true;
+  $('zoneTrajet').hidden = true;
+  versEcran('fiche');
+};
+
+$('btnRetour').onclick = () => versEcran('scan');
+
+$('btnDemarrer').onclick = async () => {
+  const r = await appel('POST', '/trajets',
+    { jetonQr: etat.qr, latitude: 4.051056, longitude: 9.767869 });
+  if (r.ok) {
+    etat.jetonSuivi = r.donnees.jetonSuivi || r.donnees.jeton_suivi;
+    etat.positions = 0; etat.proches = 0; etat.alerte = false;
+    $('zoneAvantTrajet').hidden = true;
+    $('zoneTrajet').hidden = false;
+    rafraichirTrajet();
+  }
+};
+
+$('btnAlerte').onclick = async () => {
+  const r = await appel('POST', `/trajets/${etat.jetonSuivi}/alerte`,
+    { latitude: 4.051056, longitude: 9.767869 });
+  if (r.ok) {
+    etat.alerte = true;
+    const d = r.donnees || {};
+    $('infoDestinataires').textContent = d.destinataires ?? (d.destinatairesPrevenus ?? 0);
+    rafraichirTrajet();
+  }
+};
+
+$('btnAnnulerAlerte').onclick = async () => {
+  const r = await appel('POST', `/trajets/${etat.jetonSuivi}/alerte/annulation`,
+    { motif: 'Déclenchement accidentel' });
+  if (r.ok) { etat.alerte = false; rafraichirTrajet(); }
+};
+
+$('btnPartager').onclick = async () => {
+  const r = await appel('POST', `/trajets/${etat.jetonSuivi}/partage`, {
+    contacts: [{ nom: $('champNom').value.trim(), telephone: $('champTel').value.trim() }],
+    memoriser: true,
+  });
+  if (r.ok) { etat.proches += 1; rafraichirTrajet(); }
+};
+
+$('btnPosition').onclick = async () => {
+  const r = await appel('POST', `/trajets/${etat.jetonSuivi}/positions`, {
+    positions: [{
+      latitude: 4.051056 + Math.random() * 0.01,
+      longitude: 9.767869 + Math.random() * 0.01,
+      precisionM: 12,
+      mesureLe: new Date().toISOString(),
+    }],
+  });
+  if (r.ok) { etat.positions += 1; rafraichirTrajet(); }
+};
+
+$('btnSuivi').onclick = () => appel('GET', '/suivi/' + etat.jetonSuivi);
+
+$('btnTerminer').onclick = async () => {
+  const r = await appel('POST', `/trajets/${etat.jetonSuivi}/fin`,
+    { latitude: 4.061056, longitude: 9.777869 });
+  if (r.ok) {
+    etat.jetonSuivi = null; etat.alerte = false;
+    $('zoneTrajet').hidden = true;
+    $('zoneAvantTrajet').hidden = false;
+    versEcran('scan');
+  }
+};
+
+$('btnVider').onclick = () => {
+  $('journal').innerHTML = '<p class="muet" style="padding:14px">Journal vidé.</p>';
+};
+
+// ---- Santé de l'API + reprise d'un trajet en cours ----
+(async () => {
+  const p = $('etatApi');
+  try {
+    const r = await fetch(API + '/trajets/courant', { headers: { 'x-session-passager': session } });
+    p.textContent = 'API connectée'; p.className = 'etat-api ok';
+    // Sans trajet en cours, la route répond 200 avec un corps vide.
+    const texte = await r.text();
+    let d = null; try { d = texte ? JSON.parse(texte) : null; } catch { d = null; }
+    if (r.ok && d && (d.jetonSuivi || d.jeton_suivi)) {
+      etat.jetonSuivi = d.jetonSuivi || d.jeton_suivi;
+      etat.alerte = !!(d.alerteActive || d.alerte_active);
+      // La reprise renvoie la fiche complète : on réaffiche le vrai chauffeur,
+      // avec le statut figé au moment du scan.
+      afficherFiche({
+        chauffeur: d.chauffeur, vehicule: d.vehicule, ville: d.ville,
+        statut: {
+          code: (d.chauffeur || {}).statutAuScan,
+          verifie: (d.chauffeur || {}).statutAuScan === 'verifie',
+          libelle: (d.chauffeur || {}).statutAuScan === 'verifie'
+            ? 'VÉRIFIÉ — trajet repris' : 'TRAJET REPRIS',
+        },
+      });
+      $('zoneAvantTrajet').hidden = true;
+      $('zoneTrajet').hidden = false;
+      rafraichirTrajet();
+      versEcran('fiche');
+      journaliser('GET', API + '/trajets/courant', r.status, d, null);
+    }
+  } catch {
+    p.textContent = 'API injoignable — lancez npm run dev';
+    p.className = 'etat-api ko';
+  }
+})();
+</script>
+</body>
+</html>

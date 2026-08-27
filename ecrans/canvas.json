@@ -1,0 +1,144 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 · Scan du QR (passager)"
+    },
+    {
+      "file": "NonVerifie.dc.html",
+      "x": 490,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1b · Scan — chauffeur NON vérifié"
+    },
+    {
+      "file": "Partage.dc.html",
+      "x": 980,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 · Prévenir un proche"
+    },
+    {
+      "file": "Trajet.dc.html",
+      "x": 1470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 · Trajet en cours"
+    },
+    {
+      "file": "Alerte.dc.html",
+      "x": 1960,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3b · Alerte déclenchée"
+    },
+    {
+      "file": "Proche.dc.html",
+      "x": 2450,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "4 · Vue du proche (lien SMS)"
+    },
+    {
+      "file": "Inscription.dc.html",
+      "x": 0,
+      "y": 1024,
+      "w": 390,
+      "h": 844,
+      "title": "5 · Inscription chauffeur"
+    },
+    {
+      "file": "MonQR.dc.html",
+      "x": 490,
+      "y": 1024,
+      "w": 390,
+      "h": 844,
+      "title": "6 · Mon code QR (chauffeur)"
+    },
+    {
+      "file": "Admin.dc.html",
+      "x": 980,
+      "y": 1024,
+      "w": 1280,
+      "h": 860,
+      "title": "7 · Validation des dossiers (admin)"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "parcours-passager",
+      "x": 0,
+      "y": -150,
+      "w": 640,
+      "text": "PARCOURS PASSAGER — aucun compte, aucune installation.\nLe QR ouvre directement une page web."
+    },
+    {
+      "id": "note-verif",
+      "x": 0,
+      "y": 904,
+      "w": 390,
+      "text": "Le QR ne prouve rien à lui seul : un chauffeur peut afficher celui d'un autre. La photo et la plaque sont donc surdimensionnées, et le passager confirme visuellement."
+    },
+    {
+      "id": "note-sms",
+      "x": 980,
+      "y": 904,
+      "w": 390,
+      "text": "Le SMS est le canal principal, pas un repli : sur les axes inter-urbains la data ne passe pas."
+    },
+    {
+      "id": "note-gps",
+      "x": 1470,
+      "y": 904,
+      "w": 390,
+      "text": "Position toutes les 90 s, pas en continu : batterie et data sont des contraintes réelles ici. Un trajet d'une heure doit coûter moins de 100 Ko."
+    },
+    {
+      "id": "parcours-chauffeur",
+      "x": 0,
+      "y": 1934,
+      "w": 460,
+      "text": "PARCOURS CHAUFFEUR — le QR n'est généré qu'après validation par un agent."
+    },
+    {
+      "id": "note-admin",
+      "x": 980,
+      "y": 1934,
+      "w": 620,
+      "text": "Sans cette étape humaine, le badge « Vérifié » serait un mensonge — et un risque juridique en cas d'incident. C'est aussi l'écran à montrer à une commune pour décrocher le partenariat."
+    },
+    {
+      "id": "note-statuts",
+      "x": 1700,
+      "y": 1024,
+      "w": 400,
+      "text": "TROIS STATUTS\n\nDéclaré — auto-inscrit, bandeau orange « Non vérifié »\nVérifié — pièces contrôlées par votre agent, badge vert\nCertifié — confirmé par une commune ou un syndicat, badge bleu\n\nCela permet de lancer maintenant, et de brancher les partenaires ensuite sans refondre le produit."
+    },
+    {
+      "id": "note-nonverifie",
+      "x": 490,
+      "y": 904,
+      "w": 390,
+      "text": "L'état que verront vos premiers utilisateurs : tant qu'aucun agent n'a traité les dossiers, personne n'est vérifié. L'écran ne bloque pas la course — il informe et pousse à prévenir un proche."
+    },
+    {
+      "id": "note-alerte",
+      "x": 1960,
+      "y": 904,
+      "w": 390,
+      "text": "Conçu pour être lu en état de panique : une seule confirmation dominante, la liste de qui a été prévenu, et une annulation qui demande un geste délibéré. Le 117 est le numéro de la police camerounaise."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
