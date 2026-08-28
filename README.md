@@ -45,6 +45,14 @@ npm install
 cp .env.exemple .env
 ```
 
+Sur une base **déjà installée** avant une modification du schéma,
+`installer.sh` ne suffit pas — il recrée tout. Appliquer les migrations
+de `db/migrations/`, idempotentes et rejouables sans risque :
+
+```bash
+psql -d securitaxi -v ON_ERROR_STOP=1 -f db/migrations/2026-08-28_reference_relais.sql
+```
+
 L'API refuse de démarrer tant que `JWT_SECRET` garde sa valeur d'exemple
 — c'est délibéré. Générer une vraie valeur :
 
@@ -58,28 +66,86 @@ socket Unix locale, sans mot de passe. Laisser `SMS_FOURNISSEUR=console`
 
 ### Lancer
 
+Deux commandes, dans cet ordre. La première occupe son terminal : ouvrir
+un second onglet pour la suivante.
+
 ```bash
-npm run dev                # API + pages, port 3000
-npm run jeu-de-donnees     # comptes et dossiers de démonstration
+cd api
+npm run dev                # 1. API + pages, port 3000 — laisser tourner
+npm run jeu-de-donnees     # 2. dans un autre terminal : données de test
 ```
 
-Le second script affiche un code QR, par exemple :
+Le second script affiche les comptes créés et **le code QR à utiliser** :
 
 ```
 699452108  Paul Bertrand NGONO    verifie
-           → QR BUH4FVZ — scannable
+           → QR 4NRZ7KT — scannable
 ```
 
-Ouvrir alors `http://localhost:3000/s/BUH4FVZ` — **en remplaçant
-`BUH4FVZ` par le code que votre terminal affiche**. Il change à chaque
-exécution du script ; un code inventé donne « CODE NON RECONNU », ce qui
-est le comportement attendu.
+Ce code **change à chaque exécution** du script : remplacer `4NRZ7KT`
+par celui que votre terminal affiche. Un code inventé donne « CODE NON
+RECONNU » — c'est le comportement attendu, pas une panne.
 
 Pour retrouver un code actif sans relancer le script :
 
 ```bash
 psql -d securitaxi -c "SELECT jeton FROM code_qr WHERE actif;"
 ```
+
+#### L'écran passager
+
+C'est le produit tel qu'un passager le rencontre. Aucun compte, aucune
+installation.
+
+| Ouvrir dans le navigateur | Ce que ça montre |
+|---|---|
+| `http://localhost:3000/s/4NRZ7KT` | **Le scan** — identité du chauffeur, plaque, statut. L'écran qui décide si on monte. |
+| `http://localhost:3000/` | L'accueil, avec le champ de saisie manuelle d'un code |
+
+Depuis l'écran de scan : **« Démarrer le trajet »** → suivi en direct,
+partage à un proche par SMS, bouton d'alerte, puis « Terminer » → l'objet
+oublié et la mise en relation par le call center.
+
+Les SMS ne partent pas réellement en développement. Pour les lire :
+
+```bash
+psql -d securitaxi -c \
+  "SELECT categorie, telephone, contenu FROM sms_sortant ORDER BY cree_le DESC LIMIT 5;"
+```
+
+#### L'écran chauffeur
+
+| Ouvrir dans le navigateur | Ce que ça montre |
+|---|---|
+| `http://localhost:3000/chauffeur/connexion` | Connexion par code SMS |
+| `http://localhost:3000/chauffeur/inscription` | Inscription d'un nouveau chauffeur |
+| `http://localhost:3000/chauffeur` | Son dossier, ses pièces, son code QR |
+
+Se connecter avec le numéro **`699452108`** (Paul Bertrand NGONO, déjà
+vérifié). Le code SMS ne s'envoie pas : le récupérer dans les journaux
+de `npm run dev`, ou en base :
+
+```bash
+psql -d securitaxi -c \
+  "SELECT contenu FROM sms_sortant WHERE categorie='otp' ORDER BY cree_le DESC LIMIT 1;"
+```
+
+Autres comptes selon l'état de dossier à observer — mot de passe commun
+`DeveloppementSecuriTaxi2026` :
+
+| Numéro | État du dossier |
+|---|---|
+| `699452108` | vérifié, QR actif |
+| `677334455` | pièces déposées, pas encore examinées |
+| `695112233` | dossier vide |
+| `698776655` | suspendu, QR révoqué |
+
+#### L'écran agent
+
+Pas de page dédiée à ce jour : l'agent passe par la documentation
+interactive `http://localhost:3000/api/docs`. Se connecter avec
+`699000002` / `DeveloppementSecuriTaxi2026`, coller le jeton dans
+**Authorize**, puis appeler `/api/chauffeurs/file-validation`.
 
 ---
 
@@ -101,14 +167,15 @@ génère et garde. Ce jeton n'authentifie rien : il relie un trajet à ses
 contacts et empêche d'agir sur le trajet d'un autre.
 
 **Objet oublié.** Une fois la course terminée, le passager obtient le
-numéro du chauffeur — cliquable pour appeler — ou décrit l'objet, et le
-chauffeur reçoit un SMS auquel il peut répondre.
+numéro du **call center** et une référence de dossier, ou décrit l'objet,
+et le chauffeur reçoit un SMS auquel il peut répondre. Le numéro
+personnel du chauffeur ne lui est jamais communiqué : c'est l'opérateur
+qui fait le relais.
 
-Le numéro ne sort qu'à trois conditions, et aucune n'est accessoire :
-la course doit être terminée, la session doit être celle qui l'a faite
-(un proche qui suit le trajet n'y a pas droit), et chaque consultation
-est écrite dans `journal_audit`. Un numéro donné au scan serait
-récupérable en masse par quiconque scanne des QR sans jamais monter.
+L'accès à cette référence tient à trois conditions, et aucune n'est
+accessoire : la course doit être terminée, la session doit être celle
+qui l'a faite (un proche qui suit le trajet n'y a pas droit), et chaque
+demande est écrite dans `journal_audit`.
 
 ### Le proche — un lien reçu par SMS
 
@@ -164,7 +231,8 @@ répond à une manière dont le produit pourrait mentir à quelqu'un.
 4. **Le double appui sur l'alerte ne crée pas de doublon.** Quelqu'un
    qui panique appuie plusieurs fois — l'alerte existante est renvoyée.
 5. **Une session ne pilote pas le trajet d'une autre.**
-6. **Un agent ne voit que sa ville.** ⚠️ *Voir « Limites connues ».*
+6. **Un agent ne voit que sa ville.** La file de validation est filtrée
+   sur l'autorité portée par son jeton, jamais sur un paramètre d'URL.
 
 ---
 
@@ -187,12 +255,12 @@ securite-taxi-cameroun/
 │   │   └── base/         accès PostgreSQL et transactions
 │   └── scripts/      superadmin, démonstration, jeu de données
 ├── db/               schéma SQL, vues, rétention
-├── docs/             modèle de données, guide de test
+├── docs/             cahier des charges, modèle de données, guide de test
 ├── ecrans/           maquettes d'origine (.dc.html)
 └── test-visuel/      banc d'essai montrant les appels HTTP
 ```
 
-**7 000 lignes de TypeScript, 19 tables, 161 tests.**
+**7 000 lignes de TypeScript, 19 tables, 168 tests.**
 
 ### Choix techniques
 
@@ -231,6 +299,11 @@ Les tables centrales et leurs liens :
 
 Détail complet : [docs/modele-donnees.md](docs/modele-donnees.md).
 
+Les exigences, le périmètre et l'articulation avec la plateforme
+officielle Taxi-Yaoundé.com sont décrits dans
+[docs/cahier-des-charges.pdf](docs/cahier-des-charges.pdf) — 15 pages, généré
+depuis `docs/cahier-des-charges.html`.
+
 ---
 
 ## Tester
@@ -241,7 +314,7 @@ Quatre niveaux, du plus rapide au plus manuel. Guide détaillé :
 ### 1. Tests automatiques
 
 ```bash
-npm test              # 161 tests, ~10 s, aucune base requise
+npm test              # 168 tests, ~10 s, aucune base requise
 npm run typecheck
 ```
 
@@ -338,37 +411,17 @@ le seul cas où quelqu'un appuie en boucle est celui où il panique.
 **La session passager** n'authentifie rien et ne donne accès qu'à ce
 qu'elle a créé.
 
-**Le numéro du chauffeur** n'apparaît ni au scan, ni dans le suivi
-partagé avec les proches. Il n'est délivré qu'à la session ayant fait
-la course, une fois celle-ci terminée, et chaque consultation est
-tracée. C'est un compromis assumé : le passager qui a oublié quelque
-chose doit pouvoir joindre le chauffeur, mais son numéro personnel ne
-peut plus être repris une fois diffusé.
+**Le numéro du chauffeur** ne sort d'aucun point de l'API passager :
+ni au scan, ni dans le suivi partagé, ni après la course. Le besoin
+légitime — joindre le chauffeur pour un objet oublié — passe par le
+call center, qui met en relation sur référence. Un numéro personnel
+remis à un inconnu ne se reprend plus, et le chauffeur n'a pas choisi
+son passager ; l'opérateur, lui, peut refuser une mise en relation et
+garde une trace des deux versions.
 
 ---
 
 ## Limites connues
-
-**Le cloisonnement par ville n'est pas appliqué sur la file de
-validation.** Un agent de Yaoundé voit les dossiers de Douala.
-
-La cause est dans [api/src/chauffeurs/chauffeurs.controller.ts](api/src/chauffeurs/chauffeurs.controller.ts) :
-le filtre vient d'un paramètre d'URL, donc du client.
-
-```ts
-async file(@Query('villeId') villeId?: string) {
-  return this.chauffeurs.fileValidation(villeId);   // sans villeId → tout
-}
-```
-
-Le service filtre correctement quand on lui passe la valeur, et la route
-`:id/validation` juste en dessous applique le bon réflexe avec
-`@CompteConnecte()`. C'est une route qui a échappé au motif, pas un
-défaut de conception. Portée : la file expose des noms, plaques et
-rattachements — pas de pièces d'identité — et seul un agent authentifié
-l'atteint.
-
-**Autres manques :**
 
 - Pas d'écran agent ni d'écran superadmin (Swagger uniquement).
 - `db/verifier.sh` échoue sur `CREATE EXTENSION postgis` (droits

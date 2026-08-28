@@ -1,0 +1,1187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Cahier des charges — Plateforme de sécurité des transports en commun</title>
+<style>
+  @page { size: A4; margin: 13mm 13mm 11mm 13mm; }
+  :root {
+    --encre:#1A1A18; --gris:#5E5C55; --gris-cl:#8A877E;
+    --trait:#D8D4C8; --trait-cl:#EDE9E0; --fond-cl:#FAF8F3;
+    --vert:#1F6B45; --rouge:#A8342A; --ocre:#9A6B1F;
+  }
+  * { box-sizing:border-box; }
+  body {
+    font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    font-size:8.45pt; line-height:1.31; color:var(--encre); margin:0;
+    -webkit-font-smoothing:antialiased;
+  }
+  .garde { height:262mm; display:flex; flex-direction:column; page-break-after:always; }
+  .garde-filet { height:3.5px; background:var(--vert); width:56mm; }
+  .garde-haut { padding-top:16mm; }
+  .garde-surtitre {
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:8pt;
+    letter-spacing:2.3px; text-transform:uppercase; color:var(--gris); margin-top:9mm;
+  }
+  .garde h1 { font-size:25pt; line-height:1.14; margin:5mm 0 0; font-weight:600;
+              letter-spacing:-0.3px; max-width:140mm; }
+  .garde .sous { font-size:12pt; color:var(--gris); margin-top:4.5mm; font-style:italic; }
+  .garde-milieu { flex:1; }
+  .garde-bas { border-top:1px solid var(--trait); padding-top:5mm;
+               font-family:"Helvetica Neue",Arial,sans-serif; font-size:8.4pt; color:var(--gris); }
+  .garde-bas table { border:0; margin:0; font-size:8.4pt; }
+  .garde-bas td { border:0; padding:1.3mm 0; vertical-align:top; }
+  .garde-bas td:first-child { color:var(--gris-cl); text-transform:uppercase;
+    letter-spacing:1px; font-size:7.3pt; width:40mm; padding-right:5mm; }
+  .garde-bas td:last-child { color:var(--encre); }
+  .avert { background:var(--fond-cl); border-left:3px solid var(--ocre);
+           padding:4.5mm 5mm; margin-top:7mm; font-size:8.8pt; color:var(--gris); }
+  h2,h3,h4 { font-family:"Helvetica Neue",Arial,sans-serif; font-weight:600;
+             page-break-after:avoid; color:var(--encre); }
+  h2 { font-size:12.4pt; margin:0 0 3.2mm; padding-bottom:2.2mm;
+       border-bottom:1.8px solid var(--encre); letter-spacing:-0.2px; }
+  h2 .num { display:block; font-size:7.8pt; letter-spacing:2px;
+            color:var(--vert); margin-bottom:1.6mm; font-weight:700; }
+  h3 { font-size:9.6pt; margin:4mm 0 1.7mm; letter-spacing:-0.1px; }
+  h3:first-of-type { margin-top:1mm; }
+  h4 { font-size:8.1pt; margin:3mm 0 1.3mm; text-transform:uppercase;
+       letter-spacing:1.2px; color:var(--gris); }
+  section.chap { margin-top:7mm; }
+  section.chap h2 { padding-top:2mm; }
+  p { margin:0 0 1.9mm; text-align:justify; hyphens:auto; }
+  strong { font-weight:600; } em { font-style:italic; }
+  ul,ol { margin:0 0 2.2mm; padding-left:5mm; }
+  li { margin-bottom:0.7mm; text-align:justify; }
+  code,.mono { font-family:"DejaVu Sans Mono",Menlo,Consolas,monospace;
+    font-size:7.5pt; background:var(--fond-cl); padding:0.3mm 0.9mm;
+    border-radius:2px; color:var(--encre); }
+  table { width:100%; border-collapse:collapse; margin:2mm 0 2.8mm;
+          font-size:7.7pt; page-break-inside:auto; }
+  thead { display:table-header-group; }
+  th { font-family:"Helvetica Neue",Arial,sans-serif; font-size:7pt;
+       text-transform:uppercase; letter-spacing:0.7px; text-align:left;
+       color:var(--gris); border-bottom:1.3px solid var(--encre);
+       padding:1.2mm 2mm 1.2mm 0; font-weight:600; }
+  td { padding:1.15mm 2mm 1.15mm 0; border-bottom:0.4px solid var(--trait-cl);
+       vertical-align:top; }
+  tr { page-break-inside:avoid; }
+  td.ref,th.ref { width:16mm; }
+  td.ref { font-family:"DejaVu Sans Mono",monospace; font-size:7.2pt;
+           color:var(--vert); font-weight:600; white-space:nowrap; }
+  td.prio,th.prio { width:13mm; }
+  td.prio { font-size:7.2pt; }
+  .doit { color:var(--rouge); font-weight:600; }
+  .devrait { color:var(--ocre); }
+  .note { background:var(--fond-cl); border-left:2.5px solid var(--trait);
+          padding:2.3mm 3.2mm; margin:2.2mm 0; font-size:8pt;
+          page-break-inside:avoid; }
+  .note.decision { border-left-color:var(--vert); }
+  .note.danger { border-left-color:var(--rouge); }
+  .note.attention { border-left-color:var(--ocre); }
+  .note p:last-child { margin-bottom:0; }
+  .note .etiq { font-family:"Helvetica Neue",Arial,sans-serif; font-size:6.9pt;
+    text-transform:uppercase; letter-spacing:1.3px; font-weight:700;
+    display:block; margin-bottom:1.4mm; }
+  .note.decision .etiq { color:var(--vert); }
+  .note.danger .etiq { color:var(--rouge); }
+  .note.attention .etiq { color:var(--ocre); }
+  .note .etiq.neutre { color:var(--gris); }
+  figure { margin:3mm 0; page-break-inside:avoid; }
+  figure svg { width:100%; height:auto; display:block; }
+  figcaption { font-family:"Helvetica Neue",Arial,sans-serif; font-size:7.3pt;
+    color:var(--gris); margin-top:1.8mm; padding-top:1.4mm;
+    border-top:0.4px solid var(--trait-cl); }
+  figcaption b { color:var(--encre); font-weight:600; }
+  .toc ol { list-style:none; padding:0; margin:0; }
+  .toc > ol > li { font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:8.6pt; font-weight:600; padding:1.7mm 0;
+    border-bottom:0.4px solid var(--trait-cl); }
+  .toc .tnum { color:var(--vert); display:inline-block; width:7mm; }
+  .toc .tsub { font-weight:400; font-size:7.6pt; color:var(--gris);
+    display:block; margin:0.8mm 0 0 7mm; line-height:1.4; }
+</style>
+</head>
+<body>
+
+<div class="garde">
+  <div class="garde-haut">
+    <div class="garde-filet"></div>
+    <div class="garde-surtitre">Cahier des charges · Version 1.0</div>
+    <h1>Plateforme de sécurité<br>des transports en commun</h1>
+    <div class="sous">Vérification des taxis, suivi de trajet et alerte —<br>République du Cameroun</div>
+  </div>
+  <div class="garde-milieu">
+    <div class="avert">
+      <strong>Document de référence.</strong> Il définit ce que la plateforme
+      doit faire, pour qui, avec quelles technologies et sous quelles
+      contraintes. Il fait foi entre le maître d'ouvrage et l'équipe de
+      réalisation. Les exigences numérotées <span class="mono">EF-xx</span> et
+      <span class="mono">ENF-xx</span> sont contractuelles ; les critères de
+      recette du chapitre 10 conditionnent l'acceptation de la livraison.
+    </div>
+  </div>
+  <div class="garde-bas">
+    <table>
+      <tr><td>Objet</td><td>Vérifier l'identité d'un taxi, suivre un trajet, alerter en cas de danger</td></tr>
+      <tr><td>Version</td><td>1.0 — 28 août 2026</td></tr>
+      <tr><td>Périmètre</td><td>Villes du Cameroun, en articulation avec les registres municipaux</td></tr>
+      <tr><td>Registre d'autorité</td><td>Taxi-Yaoundé.com — Communauté urbaine de Yaoundé, appui GIZ</td></tr>
+      <tr><td>Cadre légal</td><td>Loi n° 2024/017 sur la protection des données personnelles</td></tr>
+      <tr><td>État</td><td>Socle technique réalisé — 168 tests automatisés au vert</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== 1. CONTEXTE ===================== -->
+<section>
+<h2><span class="num">Chapitre 1</span>Contexte et positionnement</h2>
+
+<h3>1.1 Le problème</h3>
+<p>Le transport urbain par taxi au Cameroun repose sur une relation de confiance
+sans preuve. Le passager monte dans un véhicule dont il ne peut vérifier ni
+l'identité du conducteur, ni la légalité de l'exploitation : la plaque peut être
+fausse, le conducteur peut ne pas être le titulaire de la licence, le véhicule
+peut ne pas être déclaré.</p>
+
+<p>Les cas d'agression, de séquestration et de vol — réels ou rapportés —
+alimentent une défiance qui pèse d'abord sur les femmes, les voyageurs de nuit
+et les personnes transportant de la valeur. Le chauffeur honnête, l'immense
+majorité, subit cette défiance sans disposer d'aucun moyen de s'en distinguer.
+C'est un point de conception central : <strong>la plateforme sert autant le
+chauffeur que le passager</strong>. Un dispositif perçu comme un simple outil de
+surveillance des conducteurs serait rejeté par la profession, et un dispositif
+rejeté par la profession ne serait jamais déployé.</p>
+
+<h3>1.2 La réforme en cours</h3>
+<p>Par arrêté du <strong>25 juin 2026</strong>, le maire de Yaoundé, Luc Messi
+Atangana, a institué l'<strong>enregistrement numérique obligatoire</strong> des
+propriétaires et conducteurs de taxis. Le dispositif s'appuie sur la plateforme
+<strong>Taxi-Yaoundé.com</strong>, développée par la Communauté urbaine de
+Yaoundé (CUY) avec l'appui technique de la coopération allemande (GIZ).</p>
+
+<table>
+  <thead><tr><th style="width:40mm">Élément</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td>Autorité · appui</td><td>Communauté urbaine de Yaoundé · GIZ</td></tr>
+    <tr><td>Identifiant conducteur</td><td>Code QR personnel</td></tr>
+    <tr><td>Identifiant véhicule</td><td>Numéro de portière unique, remplaçant les anciennes identifications</td></tr>
+    <tr><td>Enregistrement</td><td>3 juillet au 5 octobre 2026, dans les services de la CUY et les mairies d'arrondissement</td></tr>
+    <tr><td>Sanction</td><td>Mise en fourrière systématique des taxis non enregistrés au-delà</td></tr>
+    <tr><td>Douala</td><td>Dispositif comparable pour les <em>moto-taxis</em> depuis le 11 juillet 2024 (CUD, projet « Moto Afrique ») — ne couvre pas les taxis quatre roues</td></tr>
+  </tbody>
+</table>
+
+<h3>1.3 Positionnement</h3>
+
+<div class="note decision">
+  <span class="etiq">Décision structurante</span>
+  <p><strong>Un chauffeur déjà enregistré sur la plateforme officielle ne doit
+  pas recommencer son inscription ici.</strong> Ce n'est pas un confort mais une
+  condition d'adoption : demander deux fois les mêmes pièces à un chauffeur,
+  c'est garantir qu'aucune des deux démarches ne sera menée correctement.</p>
+</div>
+
+<table>
+  <thead><tr><th style="width:26mm"></th><th>Plateforme officielle (CUY)</th><th>Cette plateforme</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Rôle</strong></td><td><strong>Registre d'autorité</strong> — établit qui a le droit d'exercer</td><td><strong>Service au passager</strong> — vérifier, suivre, alerter</td></tr>
+    <tr><td><strong>Détient</strong></td><td>La vérité administrative</td><td>Une copie vérifiée, plus le vécu de la course</td></tr>
+    <tr><td><strong>Produit</strong></td><td>L'autorisation d'exercer</td><td>La confiance en situation, au moment de monter</td></tr>
+    <tr><td><strong>Temporalité</strong></td><td>Administrative — enregistrement, renouvellement</td><td>Temps réel — les secondes avant de monter, puis le trajet</td></tr>
+  </tbody>
+</table>
+
+<p>En cas de divergence, <strong>le registre officiel fait foi</strong>. Cette
+plateforme ne délivre aucune autorisation d'exercer. Elle répond à une question
+que le registre ne traite pas : <em>comment un passager, seul devant un taxi, la
+nuit, avec un téléphone d'entrée de gamme, vérifie-t-il en quelques secondes ce
+que le registre sait ?</em></p>
+
+<h3>1.4 Périmètre</h3>
+<table>
+  <thead><tr><th style="width:56mm">Inclus</th><th>Exclu — et pourquoi</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Vérification par QR ; appairage au registre officiel ; inscription
+      locale de repli ; validation des dossiers ; suivi de trajet ; partage aux
+      proches ; alerte ; signalement ; suspension ; mise en relation par call
+      center ; administration et supervision.</td>
+      <td>
+        <strong>Réservation de course</strong> — ce n'est pas un VTC ; la plateforme ne place personne dans un taxi.<br>
+        <strong>Paiement</strong> — aucun flux financier.<br>
+        <strong>Notation des chauffeurs</strong> — une note moyenne ne dit rien de la sécurité et se retourne contre les chauffeurs de nuit.<br>
+        <strong>Délivrance d'autorisation</strong> — prérogative de l'autorité compétente.<br>
+        <strong>Géolocalisation permanente</strong> — le suivi n'existe que pendant un trajet, à l'initiative du passager.
+      </td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 2. ACTEURS ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 2</span>Acteurs et rôles</h2>
+
+<p>Six acteurs interviennent. Un seul — le passager — n'a pas de compte, et
+cette asymétrie est le fondement de toute la conception.</p>
+
+<table>
+  <thead><tr><th style="width:30mm">Acteur</th><th style="width:30mm">Authentification</th><th>Rôle et périmètre d'action</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Passager</strong></td><td>Aucune — jeton de session local</td>
+      <td>Scanne un QR, consulte l'identité publique du chauffeur, décide de monter. Peut démarrer un suivi de trajet, le partager à des proches, déclencher une alerte, signaler un incident, demander une mise en relation après la course.</td>
+    </tr>
+    <tr>
+      <td><strong>Chauffeur</strong></td><td>Code à usage unique par SMS</td>
+      <td>S'appaire au registre officiel ou dépose un dossier local. Téléverse ses pièces, suit l'état de son dossier, obtient son code QR après validation, répond aux déclarations d'objets perdus le concernant.</td>
+    </tr>
+    <tr>
+      <td><strong>Agent de validation</strong></td><td>Mot de passe</td>
+      <td>Rattaché à une autorité et à une ville. Examine les dossiers de sa file, rend un verdict par pièce, valide ou rejette, traite les signalements et les alertes. <strong>Ne peut agir que sur le périmètre de son autorité.</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Autorité</strong></td><td>—</td>
+      <td>Communauté urbaine, police, gendarmerie. Destinataire des alertes de son territoire, habilitée à prononcer les suspensions. N'est destinataire que si elle est <strong>effectivement engagée</strong> sur la ville et configurée pour recevoir les alertes.</td>
+    </tr>
+    <tr>
+      <td><strong>Opérateur call center</strong></td><td>Mot de passe</td>
+      <td>Met en relation passager et chauffeur — typiquement pour un objet oublié — <strong>sans divulguer aucun numéro à l'une ou l'autre partie</strong>. Voit l'historique des demandes visant un même chauffeur, peut refuser en consignant le motif, escalade vers l'autorité.</td>
+    </tr>
+    <tr>
+      <td><strong>Administrateur</strong></td><td>Mot de passe</td>
+      <td>Crée les comptes agents, gère le référentiel des villes et autorités, supervise l'activité. Actions intégralement journalisées.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <span class="etiq neutre">Pourquoi le passager n'a pas de compte</span>
+  <p>Exiger une inscription pour vérifier un taxi, c'est garantir que personne ne
+  vérifie. Le geste doit tenir en quelques secondes, sur le trottoir, sans réseau
+  fiable : un formulaire, une confirmation par SMS ou un téléchargement
+  d'application à cet instant suffisent à faire abandonner le passager — et un
+  dispositif de sécurité qu'on n'utilise pas ne protège personne.</p>
+  <p>Son identité tient dans un <strong>jeton de session</strong> que son
+  navigateur génère et conserve localement. Ce jeton <em>cloisonne mais
+  n'authentifie pas</em> : il relie un trajet à ses contacts et empêche d'agir
+  sur le trajet d'un autre, sans permettre aucune identification de la personne.</p>
+</div>
+
+<h3>2.1 Matrice des droits</h3>
+<table>
+  <thead><tr>
+    <th style="width:52mm">Action</th><th>Passager</th><th>Chauffeur</th>
+    <th>Agent</th><th>Opérateur</th><th>Admin</th>
+  </tr></thead>
+  <tbody>
+    <tr><td>Scanner un QR, voir l'identité publique</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+    <tr><td>Démarrer et suivre un trajet</td><td>✔</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Déclencher une alerte · signaler</td><td>✔</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Déposer des pièces justificatives</td><td>—</td><td>✔</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Consulter une pièce d'identité déposée</td><td>—</td><td>propre</td><td>✔</td><td>—</td><td>✔</td></tr>
+    <tr><td>Rendre un verdict · valider un dossier</td><td>—</td><td>—</td><td>✔</td><td>—</td><td>✔</td></tr>
+    <tr><td>Prononcer une suspension</td><td>—</td><td>—</td><td>✔</td><td>—</td><td>✔</td></tr>
+    <tr><td>Traiter une alerte</td><td>—</td><td>—</td><td>✔</td><td>—</td><td>✔</td></tr>
+    <tr><td>Mettre en relation passager et chauffeur</td><td>—</td><td>—</td><td>—</td><td>✔</td><td>✔</td></tr>
+    <tr><td>Voir le numéro personnel d'un chauffeur</td><td><strong>jamais</strong></td><td>propre</td><td>—</td><td>relais</td><td>✔</td></tr>
+    <tr><td>Créer un compte agent</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✔</td></tr>
+  </tbody>
+</table>
+<p style="font-size:7.6pt;color:var(--gris)">« propre » : uniquement ses propres
+données. « relais » : l'opérateur établit la communication sans que le numéro
+transite vers le passager.</p>
+</section>
+
+<!-- ===================== 3. FONCTIONNEMENT ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 3</span>Fonctionnement d'ensemble</h2>
+
+<p>Le système est une application web servie par une API, adossée à une base de
+données relationnelle et à une passerelle SMS. Il n'y a aucune application
+mobile à installer : passager comme chauffeur utilisent le navigateur de leur
+téléphone.</p>
+
+<figure>
+<svg viewBox="0 0 720 330" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica Neue, Arial, sans-serif">
+  <defs>
+    <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5E5C55"/>
+    </marker>
+  </defs>
+  <text x="16" y="18" font-size="10" letter-spacing="1.6" fill="#8A877E">CLIENTS — NAVIGATEUR WEB, AUCUNE INSTALLATION</text>
+  <rect x="16" y="28" width="150" height="48" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="30" y="47" font-size="12" font-weight="600" fill="#1A1A18">Passager</text>
+  <text x="30" y="63" font-size="9.5" fill="#5E5C55">sans compte · scan, suivi</text>
+  <rect x="180" y="28" width="150" height="48" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="194" y="47" font-size="12" font-weight="600" fill="#1A1A18">Chauffeur</text>
+  <text x="194" y="63" font-size="9.5" fill="#5E5C55">compte · code SMS</text>
+  <rect x="344" y="28" width="150" height="48" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="358" y="47" font-size="12" font-weight="600" fill="#1A1A18">Agent · Autorité</text>
+  <text x="358" y="63" font-size="9.5" fill="#5E5C55">compte · mot de passe</text>
+  <rect x="508" y="28" width="150" height="48" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="522" y="47" font-size="12" font-weight="600" fill="#1A1A18">Call center</text>
+  <text x="522" y="63" font-size="9.5" fill="#5E5C55">compte · mise en relation</text>
+
+  <path d="M91,76 L91,106" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <path d="M255,76 L255,106" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <path d="M419,76 L419,106" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <path d="M583,76 L583,106" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <text x="97" y="97" font-size="8.5" fill="#8A877E">HTTPS</text>
+
+  <rect x="16" y="110" width="642" height="86" rx="4" fill="#fff" stroke="#1A1A18" stroke-width="1.5"/>
+  <text x="30" y="130" font-size="11.5" font-weight="600" fill="#1A1A18">API — NestJS / TypeScript</text>
+  <text x="30" y="145" font-size="9" fill="#5E5C55">Validation stricte des entrées · Limitation de débit par point d'entrée · Garde de rôles · Journal d'audit</text>
+  <rect x="30" y="154" width="92" height="30" rx="3" fill="#1F6B45"/>
+  <text x="76" y="173" font-size="9.5" font-weight="600" fill="#fff" text-anchor="middle">Scan public</text>
+  <rect x="130" y="154" width="92" height="30" rx="3" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="176" y="173" font-size="9.5" fill="#1A1A18" text-anchor="middle">Trajets</text>
+  <rect x="230" y="154" width="92" height="30" rx="3" fill="#A8342A"/>
+  <text x="276" y="173" font-size="9.5" font-weight="600" fill="#fff" text-anchor="middle">Alertes</text>
+  <rect x="330" y="154" width="92" height="30" rx="3" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="376" y="173" font-size="9.5" fill="#1A1A18" text-anchor="middle">Dossiers</text>
+  <rect x="430" y="154" width="92" height="30" rx="3" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="476" y="173" font-size="9.5" fill="#1A1A18" text-anchor="middle">Signalements</text>
+  <rect x="530" y="154" width="114" height="30" rx="3" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="587" y="173" font-size="9.5" fill="#1A1A18" text-anchor="middle">Auth · QR · SMS</text>
+
+  <path d="M180,196 L180,228" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <path d="M420,196 L420,228" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+  <path d="M600,196 L600,228" stroke="#5E5C55" stroke-width="1.2" marker-end="url(#f)"/>
+
+  <text x="16" y="248" font-size="10" letter-spacing="1.6" fill="#8A877E">PERSISTANCE ET SERVICES EXTERNES</text>
+  <rect x="16" y="256" width="290" height="56" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="30" y="275" font-size="11.5" font-weight="600" fill="#1A1A18">PostgreSQL + PostGIS</text>
+  <text x="30" y="290" font-size="9.5" fill="#5E5C55">16 tables · vues de projection · purge à 30 j</text>
+  <text x="30" y="304" font-size="9.5" fill="#5E5C55">Transactions pour les invariants critiques</text>
+  <rect x="318" y="256" width="164" height="56" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="332" y="275" font-size="11.5" font-weight="600" fill="#1A1A18">Stockage fichiers</text>
+  <text x="332" y="290" font-size="9.5" fill="#5E5C55">Pièces d'identité, hors</text>
+  <text x="332" y="304" font-size="9.5" fill="#5E5C55">racine servie</text>
+  <rect x="494" y="256" width="164" height="56" rx="4" fill="#FAF8F3" stroke="#D8D4C8"/>
+  <text x="508" y="275" font-size="11.5" font-weight="600" fill="#1A1A18">Passerelle SMS</text>
+  <text x="508" y="290" font-size="9.5" fill="#5E5C55">File prioritaire, trace</text>
+  <text x="508" y="304" font-size="9.5" fill="#5E5C55">écrite avant envoi</text>
+</svg>
+<figcaption><b>Architecture générale.</b> Le module de scan public (vert) est le
+seul accessible sans authentification. Le module d'alerte (rouge) obéit à des
+règles de robustesse renforcées : il ne doit jamais échouer silencieusement.</figcaption>
+</figure>
+
+<h3>3.1 Les trois circuits</h3>
+<p>Le système articule trois circuits indépendants, qui ne partagent que la base
+de données. Chacun fonctionne si les autres sont dégradés.</p>
+
+<table>
+  <thead><tr><th style="width:32mm">Circuit</th><th style="width:26mm">Nature</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>1 · Enrôlement</strong><br><span style="color:var(--gris)">chauffeur → autorité</span></td>
+      <td>Asynchrone<br><span style="color:var(--gris)">se compte en jours</span></td>
+      <td>Le chauffeur s'appaire au registre officiel ou dépose ses pièces ; un agent examine, rend un verdict par pièce, valide ou rejette ; un code QR est émis à la validation. Aucune contrainte de temps réel.</td>
+    </tr>
+    <tr>
+      <td><strong>2 · Vérification</strong><br><span style="color:var(--gris)">passager → base</span></td>
+      <td>Synchrone, critique</td>
+      <td>Le passager scanne, obtient une projection publique du dossier, décide. Doit répondre en quelques secondes sur un réseau médiocre. Circuit le plus sollicité et le seul entièrement public.</td>
+    </tr>
+    <tr>
+      <td><strong>3 · Suivi et alerte</strong><br><span style="color:var(--gris)">passager → proches, autorité</span></td>
+      <td>Tolérant aux pannes</td>
+      <td>Démarrage du trajet, envoi des positions, partage par SMS, alerte éventuelle. Les positions s'accumulent hors couverture et repartent en bloc ; l'alerte est écrite en base avant toute tentative d'envoi.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.2 Le principe de la frontière</h3>
+
+<div class="note decision">
+  <span class="etiq">Principe directeur</span>
+  <p>Entre le dossier complet d'un chauffeur et ce que voit un passager, il
+  existe une <strong>frontière matérialisée dans le code</strong>, et non une
+  simple discipline de programmation. Cette frontière est une vue de base de
+  données dédiée, <span class="mono">v_scan_public</span>, qui énumère
+  explicitement les champs visibles. Le service de scan interroge cette vue et
+  <strong>jamais</strong> la table des chauffeurs : ajouter par inadvertance une
+  donnée sensible à la réponse suppose de modifier délibérément la vue — un
+  geste visible en revue de code.</p>
+  <p>Le même principe s'applique au numéro de téléphone : les requêtes servant
+  une réponse au passager ne joignent pas la table des comptes. Le numéro n'est
+  pas filtré à la sortie, <em>il n'est pas lu du tout</em>. Un test automatisé
+  inspecte le texte de la requête SQL pour verrouiller la règle au niveau de
+  l'accès aux données, et non de la mise en forme de la réponse.</p>
+</div>
+
+<table>
+  <thead><tr><th style="width:56mm">Donnée du chauffeur</th><th>Visible du passager</th></tr></thead>
+  <tbody>
+    <tr><td>Nom, prénom, photo</td><td>Oui — objet même de la vérification</td></tr>
+    <tr><td>Statut de vérification et autorité</td><td>Oui — dit qui a contrôlé</td></tr>
+    <tr><td>Plaque, marque, modèle, couleur</td><td>Oui — permet le recoupement avec le véhicule réel</td></tr>
+    <tr><td>Référence de licence</td><td>Oui — vérifiable auprès de l'autorité</td></tr>
+    <tr><td>Année d'inscription</td><td>Oui — l'année seule, jamais la date</td></tr>
+    <tr><td>Numéro de téléphone</td><td><strong>Jamais</strong> — voir EF-08</td></tr>
+    <tr><td>Date de naissance, numéro de CNI, adresse</td><td><strong>Jamais</strong></td></tr>
+    <tr><td>Pièces justificatives, historique des courses</td><td><strong>Jamais</strong></td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 4. SCENARIOS ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 4</span>Scénarios d'usage</h2>
+
+<h3>SC-01 — Vérifier un taxi avant de monter</h3>
+<p><em>Passager · fréquence très élevée · criticité maximale.</em></p>
+<ol>
+  <li>Le passager hèle un taxi. Un autocollant portant un code QR est apposé de
+  façon visible dans l'habitacle ; il le scanne avec l'appareil photo de son
+  téléphone — <strong>aucune application requise</strong>.</li>
+  <li>Le QR pointe vers une adresse courte et lisible
+  (<span class="mono">/s/BUH4FVZ</span>). Le serveur résout le jeton via la vue
+  publique et renvoie une page autonome, conçue pour s'afficher en 2G.</li>
+  <li>Le passager voit d'abord le <strong>statut</strong>, en gros caractères :
+  <span class="mono">CERTIFIÉ</span>, <span class="mono">VÉRIFIÉ</span>,
+  <span class="mono">NON VÉRIFIÉ</span>, <span class="mono">SUSPENDU</span> ou
+  <span class="mono">DOSSIER REJETÉ</span>. Puis la photo, le nom, la plaque et
+  le véhicule. Il recoupe la photo avec le conducteur, la plaque avec le
+  véhicule.</li>
+  <li>Il décide. S'il monte, il peut démarrer un suivi (SC-04).</li>
+</ol>
+
+<table>
+  <thead><tr><th style="width:40mm">Variante</th><th>Comportement attendu</th></tr></thead>
+  <tbody>
+    <tr><td>QR inconnu ou révoqué</td><td>Message explicite : le code n'est pas reconnu, il peut être périmé ou ne pas provenir de la plateforme. <strong>Jamais une page vide ni une erreur technique.</strong></td></tr>
+    <tr><td>Chauffeur suspendu</td><td>Avertissement fort : il est déconseillé de monter dans ce véhicule.</td></tr>
+    <tr><td>Chauffeur non vérifié</td><td>La page indique que les informations sont déclarées par le chauffeur seul et n'ont pas été contrôlées.</td></tr>
+    <tr><td>Plaque non recoupée</td><td>Signalé : la plaque déclarée n'a pas été confrontée à un registre.</td></tr>
+    <tr><td>Pas de réseau</td><td>Le scan est impossible ; le passager en est informé. Le dispositif ne prétend pas fonctionner hors ligne à cette étape.</td></tr>
+  </tbody>
+</table>
+
+<h3>SC-02 — S'appairer au registre officiel</h3>
+<p><em>Chauffeur déjà enregistré sur Taxi-Yaoundé.com.</em></p>
+<ol>
+  <li>À l'ouverture de la page d'inscription, la première question est :
+  <em>êtes-vous déjà enregistré auprès de la Communauté urbaine ?</em></li>
+  <li>Il saisit ou scanne son identifiant officiel — QR de la CUY ou numéro de
+  portière. <strong>Aucune pièce justificative ne lui est demandée.</strong></li>
+  <li>L'identifiant est vérifié auprès du registre selon le mode d'intégration
+  en vigueur (chapitre 8) ; seuls les champs nécessaires au recoupement sont
+  récupérés.</li>
+  <li><strong>Preuve de possession.</strong> Un code à usage unique est envoyé
+  au numéro <em>déclaré au registre officiel</em>, et non à un numéro saisi par
+  le demandeur. C'est le point de contrôle central du scénario.</li>
+  <li>Le code saisi, le compte est créé au statut
+  <span class="mono">certifie</span> sans passer par la file de validation
+  locale, et le QR est émis immédiatement.</li>
+</ol>
+
+<div class="note danger">
+  <span class="etiq">Menace couverte par l'étape 4</span>
+  <p>L'identifiant officiel est <strong>public</strong> : il est affiché dans le
+  véhicule et scannable par n'importe quel passager. Il ne prouve donc
+  <em>rien</em> à lui seul. Sans preuve de possession, toute personne
+  photographiant le QR d'un taxi pourrait créer un compte au nom de ce
+  chauffeur, puis exercer sous son identité vérifiée.</p>
+</div>
+
+<table>
+  <thead><tr><th style="width:40mm">Variante</th><th>Comportement attendu</th></tr></thead>
+  <tbody>
+    <tr><td>Identifiant introuvable</td><td>Bascule proposée vers l'inscription locale (SC-03), sans perte de la saisie déjà faite.</td></tr>
+    <tr><td>Identifiant déjà appairé</td><td>Refus — un identifiant, un seul compte. Procédure de recours au guichet.</td></tr>
+    <tr><td>Numéro du registre injoignable</td><td>Repli : photo du visage recoupée avec celle du registre, ou présentation physique en mairie d'arrondissement.</td></tr>
+    <tr><td>Registre indisponible</td><td>L'appairage est différé ; scan, suivi et alerte restent pleinement opérationnels pour tous les autres usagers.</td></tr>
+    <tr><td>Chauffeur radié côté registre</td><td>Aucun compte n'est créé ; le motif est affiché.</td></tr>
+  </tbody>
+</table>
+
+<h3>SC-03 — S'inscrire localement <span style="font-weight:400;color:var(--gris)">(chemin de repli)</span></h3>
+<p><em>Chauffeur absent du registre, ou exerçant dans une ville non couverte.</em></p>
+<ol>
+  <li>Il saisit son identité, son véhicule et son numéro, confirmé par code SMS.
+  Compte créé au statut <span class="mono">declare</span> — vu du passager comme
+  <span class="mono">NON VÉRIFIÉ</span>.</li>
+  <li>Il téléverse quatre pièces : CNI, permis de conduire, carte grise, licence
+  de transport. La page indique en permanence ce qu'il reste à fournir.</li>
+  <li>Chaque fichier est contrôlé : taille, type déclaré et <strong>signature
+  binaire réelle</strong>. Un fichier dont le contenu ne correspond pas au type
+  annoncé est rejeté. Stockage sous nom aléatoire, hors racine servie.</li>
+  <li>Le dossier entre dans la file de l'autorité, signalé urgent au-delà de
+  48 h. L'agent rend un verdict par pièce : lisible, illisible, expirée, non
+  conforme.</li>
+  <li>Il valide ou rejette. <strong>La validation est impossible tant que les
+  quatre pièces ne sont pas déposées et jugées lisibles</strong>, et une
+  référence de licence est obligatoire. Statut
+  <span class="mono">verifie</span>, QR émis.</li>
+</ol>
+
+<h3>SC-04 — Suivre un trajet et prévenir ses proches</h3>
+<ol>
+  <li>Après le scan, le passager démarre le trajet. Le statut du chauffeur
+  <strong>au moment du scan</strong> est figé : si le chauffeur est suspendu
+  plus tard, on saura ce que le passager avait vu en montant.</li>
+  <li>Il saisit le nom et le numéro de proches, qui reçoivent un SMS avec un
+  lien de suivi court. Les contacts peuvent être mémorisés pour les trajets
+  suivants.</li>
+  <li>Le proche ouvre le lien sans compte ni application. Il voit la position,
+  l'état du trajet et l'identité publique du chauffeur — <strong>aucune
+  coordonnée de contact</strong>.</li>
+  <li>Le téléphone transmet les positions par lots. Hors couverture, elles
+  s'accumulent et repartent groupées à la reconnexion, <strong>en conservant
+  leur horodatage d'origine</strong>. Une dérive d'horloge de plus de 24 h fait
+  rejeter le lot.</li>
+  <li>À l'arrivée, le passager termine le trajet ; les proches sont informés.</li>
+</ol>
+
+<div class="note attention">
+  <span class="etiq">Règle d'unicité</span>
+  <p>Un passager ne suit qu'un trajet à la fois : si un trajet est déjà en cours
+  lorsqu'il en démarre un autre, le précédent est clos. Sans cette règle, le
+  bouton d'alerte deviendrait ambigu — et c'est précisément le seul moment où
+  l'ambiguïté est interdite.</p>
+</div>
+
+<h3>SC-05 — Déclencher une alerte</h3>
+<p><em>Passager en danger · criticité maximale — la fonction dont la
+défaillance serait la plus grave.</em></p>
+<ol>
+  <li>Le bouton d'alerte est présent en permanence pendant le trajet, accessible
+  en un seul geste, sans confirmation à plusieurs étapes.</li>
+  <li>L'alerte est <strong>écrite en base immédiatement</strong>, avec la
+  dernière position connue, <em>avant</em> toute tentative d'envoi.</li>
+  <li>Les destinataires sont constitués : les proches ayant reçu le lien, et
+  l'autorité de la ville <em>si et seulement si</em> elle est active, engagée
+  sur ce territoire et configurée pour recevoir les alertes. Les SMS d'alerte
+  passent avant tout autre trafic.</li>
+  <li>L'alerte apparaît dans la file de l'autorité avec la position, le
+  chauffeur, le véhicule et l'historique du trajet. Elle est traitée puis close
+  avec un compte rendu.</li>
+</ol>
+
+<table>
+  <thead><tr><th style="width:56mm">Invariant</th><th>Raison</th></tr></thead>
+  <tbody>
+    <tr><td>Aucun doublon sur pression répétée</td><td>Quelqu'un qui panique appuie plusieurs fois ; cela ne doit ni créer plusieurs alertes ni saturer les destinataires.</td></tr>
+    <tr><td>L'échec d'un SMS ne fait pas échouer l'alerte</td><td>Une alerte perdue sans trace serait la pire défaillance possible du système.</td></tr>
+    <tr><td>Trace écrite avant envoi, systématiquement</td><td>Permet de réémettre et de savoir ce qui aurait dû partir.</td></tr>
+    <tr><td>Autorité destinataire seulement si engagée</td><td>Une autorité inscrite mais non opérationnelle créerait une illusion de prise en charge.</td></tr>
+    <tr><td>L'annulation prévient tous les destinataires</td><td>Une fausse manœuvre non démentie use la crédibilité du dispositif.</td></tr>
+    <tr><td>Débit volontairement peu restrictif</td><td>Le seul cas où quelqu'un appuie en boucle est celui où il panique.</td></tr>
+  </tbody>
+</table>
+
+<h3>SC-06 — Signaler un incident et suspendre</h3>
+<ol>
+  <li>Après la course, le passager signale un comportement, un véhicule non
+  conforme ou une autre anomalie, avec une description libre.</li>
+  <li>Le signalement rejoint la file de l'autorité. L'agent l'instruit et le
+  qualifie : fondé, non fondé, ou classé.</li>
+  <li>Si les faits le justifient, il prononce une suspension motivée.
+  <strong>La suspension et la révocation du QR ont lieu dans la même
+  transaction</strong> : il n'existe aucun instant où un chauffeur est suspendu
+  mais où son QR affiche encore un statut vérifié.</li>
+  <li>Le scan suivant affiche l'avertissement de suspension ; le chauffeur est
+  informé du motif.</li>
+</ol>
+
+<div class="note attention">
+  <span class="etiq">Garde-fou</span>
+  <p>Une suspension n'est <strong>jamais automatique</strong> et ne découle
+  jamais d'un volume de signalements. Elle est prononcée par une personne
+  habilitée, motivée et tracée. Un mécanisme automatique serait immédiatement
+  instrumentalisé pour écarter un concurrent.</p>
+</div>
+
+<h3>SC-07 — Récupérer un objet oublié</h3>
+<ol>
+  <li>Le trajet terminé, le passager constate un oubli et ouvre sa page de suivi.
+  Deux voies lui sont proposées — <strong>le numéro du chauffeur n'est dans
+  aucune des deux</strong>.</li>
+  <li><strong>Voie A · call center.</strong> Il obtient le numéro du call center,
+  une <strong>référence de dossier</strong> et les horaires. La référence est
+  stable : rappeler deux fois ne crée pas deux dossiers. L'opérateur joint le
+  chauffeur et organise la restitution.</li>
+  <li><strong>Voie B · déclaration.</strong> Il décrit l'objet ; le chauffeur
+  reçoit un SMS et peut répondre. Rien ne transite par la voix, et l'échange
+  laisse une trace.</li>
+</ol>
+
+<table>
+  <thead><tr><th style="width:56mm">Condition d'accès</th><th>Raison</th></tr></thead>
+  <tbody>
+    <tr><td>Le trajet doit être terminé</td><td>Une mise en relation ouverte au scan serait exploitable en masse par quiconque scanne des QR sans jamais monter.</td></tr>
+    <tr><td>Session propriétaire du trajet</td><td>Le proche qui suit le trajet par SMS n'y a pas droit.</td></tr>
+    <tr><td>Chaque demande est tracée</td><td>Un motif de harcèlement doit être visible dans les journaux.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 5. EXIGENCES FONCTIONNELLES ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 5</span>Exigences fonctionnelles</h2>
+
+<p>Les exigences <span class="mono">EF-xx</span> sont contractuelles. La priorité
+<span class="doit">Doit</span> conditionne l'acceptation de la livraison ;
+<span class="devrait">Devrait</span> désigne une exigence attendue dont l'absence
+ne bloque pas la recette.</p>
+
+<h3>EF-01 · Vérification par code QR</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-01.1</td><td>Tout chauffeur validé porte un code QR affiché visiblement dans le véhicule.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.2</td><td>Le scan ne requiert ni compte, ni application installée : une page web suffit.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.3</td><td>Le scan affiche photo, nom, prénom, plaque, description du véhicule, statut, ville, autorité de rattachement, référence de licence, année d'inscription.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.4</td><td>Le scan n'expose aucune donnée de contact, ni date de naissance, ni numéro de pièce d'identité.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.5</td><td>Un code inconnu, révoqué ou suspendu affiche un avertissement explicite, jamais une page vide ni une erreur technique.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.6</td><td>Le statut est intelligible en une seconde et hiérarchisé visuellement au-dessus du reste.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.7</td><td>La page fonctionne sur téléphone d'entrée de gamme et connexion 2G, sans dépendance à un service externe.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-01.8</td><td>L'adresse cible du QR est courte et lisible, saisissable à la main si le scan échoue.</td><td class="prio devrait">Devrait</td></tr>
+    <tr><td class="ref">EF-01.9</td><td>Le système indique si la plaque a été recoupée avec un registre ou seulement déclarée.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-02 · Appairage au registre officiel</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-02.1</td><td>Un chauffeur enregistré sur la plateforme officielle s'appaire au lieu de s'inscrire : aucun second dépôt de pièces.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.2</td><td>L'appairage se fait par saisie ou scan de l'identifiant officiel (QR de la CUY ou numéro de portière).</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.3</td><td>Le système vérifie l'identifiant auprès du registre avant toute création de compte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.4</td><td>Un chauffeur appairé et confirmé obtient le statut <span class="mono">certifie</span> sans passer par la file locale.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.5</td><td>Un identifiant officiel ne peut être appairé qu'à un seul compte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.6</td><td>La preuve de possession est obligatoire : l'identifiant officiel, public, ne suffit jamais seul (EF-03).</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.7</td><td>Le statut officiel est resynchronisé périodiquement ; une radiation côté registre suspend le compte ici.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.8</td><td>Sans interface avec le registre, le dépôt local reste disponible et produit au mieux <span class="mono">verifie</span>.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.9</td><td>Une indisponibilité du registre ne bloque que les nouveaux appairages, jamais le scan, le suivi ou l'alerte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-02.10</td><td>La provenance de chaque compte est conservée et présentée à l'agent : appairé, local, ou local puis appairé.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-03 · Preuve de possession</h3>
+<div class="note danger">
+  <span class="etiq">Exigence critique</span>
+  <p>L'identifiant officiel est affiché dans le véhicule : <strong>public par
+  construction</strong>, il ne constitue pas un secret. Aucun appairage ne peut
+  être validé sur ce seul élément.</p>
+</div>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-03.1</td><td>L'appairage exige l'identifiant officiel <strong>et</strong> au moins un facteur non public.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-03.2</td><td>Facteur de référence : code à usage unique envoyé au numéro déclaré au registre — jamais à un numéro saisi par le demandeur.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-03.3</td><td>Les tentatives d'appairage échouées sont limitées en débit et journalisées.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-03.4</td><td>Facteur de repli : photographie du visage recoupée avec la photo du registre.</td><td class="prio devrait">Devrait</td></tr>
+    <tr><td class="ref">EF-03.5</td><td>Dernier recours : présentation physique au guichet de la mairie d'arrondissement.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-04 · Inscription et validation locales</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-04.1</td><td>Le dossier comprend quatre pièces : CNI, permis de conduire, carte grise, licence de transport.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.2</td><td>Aucun statut vérifié n'est prononcé tant que les quatre pièces ne sont pas déposées <strong>et</strong> jugées lisibles.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.3</td><td>Une référence de licence est obligatoire pour tout statut vérifié ou certifié, garantie au niveau de la base de données.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.4</td><td>Chaque pièce reçoit un verdict individuel : lisible, illisible, expirée ou non conforme.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.5</td><td>Le chauffeur voit en permanence l'état de son dossier et ce qu'il reste à fournir.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.6</td><td>Un rejet est motivé et notifié ; le chauffeur peut corriger et redéposer.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-04.7</td><td>Un dossier en attente depuis plus de 48 heures est signalé comme urgent dans la file.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-05 · Suivi de trajet</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-05.1</td><td>Le passager démarre un trajet après le scan, sans compte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.2</td><td>Le statut du chauffeur au moment du scan est figé dans l'enregistrement du trajet.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.3</td><td>Le passager partage un lien de suivi avec un ou plusieurs proches, par SMS.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.4</td><td>Le suivi partagé montre la position et l'état, jamais les coordonnées du chauffeur.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.5</td><td>Les positions collectées hors réseau sont acceptées en différé, avec leur horodatage d'origine.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.6</td><td>Une dérive d'horloge supérieure à 24 heures fait rejeter le lot de positions.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.7</td><td>Un passager ne suit qu'un trajet à la fois.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-05.8</td><td>Le proche voit la fraîcheur de la position, afin de distinguer un arrêt d'une perte de signal.</td><td class="prio devrait">Devrait</td></tr>
+    <tr><td class="ref">EF-05.9</td><td>Les contacts de confiance peuvent être mémorisés pour les trajets suivants, dans le périmètre de la session.</td><td class="prio devrait">Devrait</td></tr>
+    <tr><td class="ref">EF-05.10</td><td>Un trajet non terminé au-delà de 12 heures est considéré comme abandonné.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-06 · Alerte d'urgence</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-06.1</td><td>Le bouton d'alerte est accessible en un seul geste pendant toute la durée du trajet.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.2</td><td>L'alerte est écrite en base avant toute tentative d'envoi ; l'échec d'un SMS ne fait jamais échouer l'alerte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.3</td><td>Une seconde pression ne crée pas de doublon.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.4</td><td>L'autorité n'est destinataire que si elle est active, engagée sur la ville et configurée pour recevoir les alertes.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.5</td><td>Les proches ayant reçu le lien de suivi sont alertés.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.6</td><td>L'alerte embarque la dernière position connue et l'identité du chauffeur et du véhicule.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.7</td><td>L'annulation d'une alerte prévient tous ceux qui l'avaient reçue.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.8</td><td>Les SMS d'alerte sont prioritaires sur tout autre trafic sortant.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.9</td><td>Un trajet sous alerte ne peut pas être terminé silencieusement.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-06.10</td><td>L'agent clôt l'alerte avec un compte rendu de traitement.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-07 · Signalement et suspension</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-07.1</td><td>Le passager signale un comportement, un véhicule non conforme, un objet perdu ou une autre anomalie.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-07.2</td><td>La suspension d'un chauffeur révoque son code QR dans la <strong>même transaction</strong>.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-07.3</td><td>Un code QR révoqué n'affiche plus aucune information, seulement un avertissement.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-07.4</td><td>Toute suspension est motivée, tracée et notifiée au chauffeur.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-07.5</td><td>Aucune suspension automatique : elle est toujours prononcée par une personne habilitée.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-07.6</td><td>Une suspension prononcée par l'autorité officielle est répercutée ici, et réciproquement signalée.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>EF-08 · Mise en relation par call center</h3>
+<div class="note decision">
+  <span class="etiq">Décision de conception</span>
+  <p><strong>Le passager n'obtient jamais le numéro personnel d'un
+  chauffeur.</strong> Un numéro remis à un inconnu ne se reprend plus, et le
+  chauffeur n'a pas choisi son passager. Le harcèlement après course — insultes,
+  représailles à la suite d'un litige de prix — emprunte ce canal dès qu'il
+  existe. Un opérateur peut refuser une mise en relation ; un numéro déjà
+  diffusé, non. L'opérateur dispose en outre des deux versions et peut escalader
+  vers l'autorité. <em>Coût assumé :</em> la mise en relation devient plus lente
+  et suppose une équipe — c'est le prix d'un canal qui reste maîtrisable.</p>
+</div>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">EF-08.1</td><td>Aucun point d'entrée de l'API destiné au passager n'expose le numéro d'un chauffeur.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.2</td><td>Après une course terminée, le passager obtient le numéro du call center, une référence de dossier et les horaires.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.3</td><td>La référence est stable : rappeler deux fois pour le même trajet ne crée pas deux dossiers.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.4</td><td>Seule la session ayant effectué la course obtient la référence ; un proche suivant le trajet n'y a pas droit.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.5</td><td>Toute demande de mise en relation est écrite au journal d'audit.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.6</td><td>L'opérateur peut refuser une mise en relation et consigner le motif.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.7</td><td>Le passager peut, sans appeler, décrire l'objet : le chauffeur reçoit un SMS et peut répondre.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">EF-08.8</td><td>L'opérateur voit l'historique des demandes visant un même chauffeur — un motif de harcèlement doit être visible.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 6. EXIGENCES NON FONCTIONNELLES ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 6</span>Exigences non fonctionnelles</h2>
+
+<h3>6.1 Contraintes de terrain</h3>
+<p>Ces contraintes décrivent les conditions réelles d'usage : un système qui ne
+les respecte pas ne sera pas utilisé au moment où il compte.</p>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">ENF-01</td><td>Le parcours passager fonctionne sur connexion 2G et téléphone d'entrée de gamme.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-02</td><td>Le scan ne suppose l'installation d'aucune application.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-03</td><td>Les pages destinées au passager sont autonomes, sans dépendance à un service tiers à l'affichage.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-04</td><td>L'interface est en français, dans une langue directe et sans jargon technique.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-05</td><td>Le suivi tolère les coupures réseau : les positions s'accumulent et repartent en bloc.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-06</td><td>Le SMS est le canal de secours de toute notification critique.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-07</td><td>Les adresses lues ou saisies par des humains restent courtes et sans caractères ambigus.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+
+<h3>6.2 Protection des données personnelles</h3>
+<p>Cadre de référence : <strong>loi n° 2024/017 relative à la protection des
+données à caractère personnel</strong>.</p>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">ENF-08</td><td>La séparation entre le dossier du chauffeur et ce que voit le passager est matérialisée par une projection dédiée, documentée comme frontière à ne pas franchir.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-09</td><td>Les pièces d'identité sont stockées sous nom aléatoire, hors de toute racine servie statiquement.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-10</td><td>La signature binaire de chaque fichier déposé est vérifiée et confrontée au type déclaré.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-11</td><td>La session passager cloisonne mais n'authentifie jamais : elle ne donne accès qu'à ce qu'elle a créé.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-12</td><td>Les positions sont purgées à 30 jours, sauf si le trajet est lié à une alerte ou un signalement non clos.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-13</td><td>Toute consultation d'une donnée personnelle par un tiers est écrite au journal d'audit.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-14</td><td>Les données reçues du registre officiel sont limitées au strict nécessaire à la vérification.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-15</td><td>La suppression d'un chauffeur est logique et non destructive, afin de préserver l'historique des incidents.</td><td class="prio doit">Doit</td></tr>
+  </tbody>
+</table>
+
+<h3>6.3 Disponibilité, abus et qualité</h3>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Exigence</th><th class="prio">Priorité</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">ENF-16</td><td>Le scan est limité en débit : un rythme anormal signale une énumération de jetons.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-17</td><td>Le bouton d'alerte est volontairement peu bridé — le seul cas où quelqu'un appuie en boucle est celui où il panique.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-18</td><td>Les envois de SMS sont limités par session et par catégorie, pour éviter que la plateforme ne devienne un outil de spam.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-19</td><td>Une panne du registre officiel ne bloque ni le scan, ni le suivi, ni l'alerte.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-20</td><td>Une panne de la passerelle SMS n'empêche ni l'enregistrement d'une alerte, ni son traitement par l'autorité.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-21</td><td>Les jetons publics sont générés par une source aléatoire cryptographique, dans un alphabet sans caractères ambigus.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-22</td><td>Chaque invariant de sécurité est couvert par au moins un test automatisé, exécuté à chaque modification.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-23</td><td>Les invariants critiques sont garantis au niveau de la base de données lorsque c'est possible, et non seulement dans le code.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-24</td><td>L'API est documentée et explorable, avec indication explicite des points d'entrée publics.</td><td class="prio doit">Doit</td></tr>
+    <tr><td class="ref">ENF-25</td><td>Le code, les identifiants de données et la documentation sont en français, langue de travail du projet.</td><td class="prio devrait">Devrait</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 7. TECHNOLOGIES ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 7</span>Choix technologiques</h2>
+
+<p>Chaque brique est justifiée par une contrainte de terrain, non par une
+préférence d'équipe.</p>
+
+<table>
+  <thead><tr><th style="width:30mm">Couche</th><th style="width:40mm">Retenu</th><th>Motif déterminant</th></tr></thead>
+  <tbody>
+    <tr><td>Client passager</td><td>Web, aucune installation</td><td>Le geste doit tenir en quelques secondes sur le trottoir</td></tr>
+    <tr><td>API</td><td>NestJS · TypeScript</td><td>Validation déclarative, garde de rôles, typage de la frontière</td></tr>
+    <tr><td>Base de données</td><td>PostgreSQL + PostGIS</td><td>Transactions et contraintes pour les invariants critiques</td></tr>
+    <tr><td>Authentification</td><td>Code SMS + jeton ; mot de passe pour les agents</td><td>Le chauffeur a un téléphone, pas nécessairement une adresse électronique</td></tr>
+    <tr><td>Notifications</td><td>SMS avec file prioritaire</td><td>Seul canal atteignant tout le monde, sans données mobiles</td></tr>
+    <tr><td>Codes QR</td><td>Génération SVG côté serveur</td><td>Impression nette à toute taille, aucun service externe sollicité</td></tr>
+    <tr><td>Pièces justificatives</td><td>Système de fichiers, hors racine servie</td><td>Aucune URL ne peut atteindre une pièce d'identité</td></tr>
+  </tbody>
+</table>
+
+<h3>7.1 Le web plutôt qu'une application mobile</h3>
+<p>C'est le choix le plus structurant du projet.</p>
+<table>
+  <thead><tr><th style="width:38mm">Option</th><th>Analyse</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Web — retenu</strong></td><td>L'appareil photo natif reconnaît un QR et ouvre directement la page : quelques secondes entre l'intention et l'information. Aucun stockage occupé, aucune mise à jour à propager, un seul code à maintenir. Fonctionne sur tout téléphone doté d'un navigateur.</td></tr>
+    <tr><td>Application mobile — <em>écarté</em></td><td>Impose un téléchargement au moment précis où le passager décide de monter : friction rédhibitoire. Occupe de l'espace sur des appareils qui en manquent et exclut de fait les téléphones les plus modestes. Aurait du sens pour le chauffeur, usager quotidien ; aucun pour le passager occasionnel.</td></tr>
+    <tr><td>USSD / SMS seul — <em>écarté comme canal principal</em></td><td>Atteint tous les téléphones, y compris non connectés, mais ne peut afficher ni photo ni statut visuel — or le recoupement de la photo avec le conducteur est le cœur de la vérification. Conservé comme canal de notification (ENF-06).</td></tr>
+  </tbody>
+</table>
+
+<h3>7.2 PostgreSQL — les invariants dans la base</h3>
+<p>Le choix ne tient pas aux performances mais à la capacité de garantir des
+règles métier <strong>au niveau des données</strong>, là où le code applicatif
+peut être contourné ou oublié.</p>
+<table>
+  <thead><tr><th style="width:44mm">Mécanisme</th><th>Invariant protégé</th></tr></thead>
+  <tbody>
+    <tr><td>Contrainte de vérification</td><td>Un statut vérifié ou certifié est impossible sans référence de licence — la règle vaut même pour une modification manuelle en base.</td></tr>
+    <tr><td>Transaction</td><td>Suspension et révocation du QR sont indissociables : aucun instant intermédiaire n'existe.</td></tr>
+    <tr><td>Vue de projection</td><td>Matérialise la frontière entre le dossier et le passager (§3.2).</td></tr>
+    <tr><td>Contrainte d'unicité</td><td>Un identifiant officiel, un seul compte ; une référence de relais, un seul dossier.</td></tr>
+    <tr><td>Index partiel</td><td>Alertes actives et trajets en cours restent accessibles instantanément quand l'historique grossit.</td></tr>
+    <tr><td>Fonction de purge</td><td>La rétention à 30 jours devient une règle exécutable et vérifiable, non une intention.</td></tr>
+  </tbody>
+</table>
+<p><strong>PostGIS</strong> sert aux calculs géographiques (alertes proches d'un
+point, distance parcourue). L'extension est <em>optionnelle</em> : son absence
+dégrade ces fonctions annexes sans empêcher scan, suivi ni alerte.</p>
+<p><em>Alternatives écartées.</em> Une base documentaire — l'absence de
+transactions multi-documents fiables et de contraintes déclaratives interdirait
+de garantir l'invariant « suspension et révocation indissociables » autrement
+que par de la discipline applicative. SQLite — suffisant pour une ville, inadapté
+aux écritures concurrentes d'un déploiement multi-villes.</p>
+
+<h3>7.3 NestJS et TypeScript</h3>
+<table>
+  <thead><tr><th style="width:44mm">Mécanisme</th><th>Effet</th></tr></thead>
+  <tbody>
+    <tr><td>Validation déclarative stricte</td><td>Les champs non déclarés sont non seulement ignorés mais <strong>refusés</strong> : une donnée inattendue ne peut pas se glisser dans une requête.</td></tr>
+    <tr><td>Garde de rôles</td><td>Le contrôle d'accès est déclaré au-dessus de chaque point d'entrée, visible en lecture, non enfoui dans la logique métier.</td></tr>
+    <tr><td>Limitation de débit intégrée</td><td>Chaque point d'entrée porte sa limite, ajustée à son usage réel (§9.2).</td></tr>
+    <tr><td>Modules cloisonnés</td><td>Le scan public est un module distinct de la gestion des dossiers : la séparation est structurelle.</td></tr>
+    <tr><td>Documentation générée</td><td>La description de l'API est produite depuis le code et ne peut pas dériver de la réalité.</td></tr>
+  </tbody>
+</table>
+<p><strong>TypeScript</strong> permet de typer explicitement ce que reçoit le
+passager : la forme de la réponse de scan est déclarée en un seul endroit, et
+toute tentative d'y ajouter un champ non prévu est signalée à la compilation.</p>
+
+<h3>7.4 Authentification différenciée</h3>
+<table>
+  <thead><tr><th style="width:30mm">Acteur</th><th style="width:38mm">Méthode</th><th>Justification</th></tr></thead>
+  <tbody>
+    <tr><td>Passager</td><td>Aucune — jeton de session local</td><td>Toute authentification ferait échouer le scénario principal</td></tr>
+    <tr><td>Chauffeur</td><td>Code à usage unique par SMS</td><td>Il possède un téléphone, pas nécessairement une adresse électronique ni un mot de passe mémorisable</td></tr>
+    <tr><td>Agent · admin · opérateur</td><td>Mot de passe haché</td><td>Usage quotidien depuis un poste fixe ; le SMS serait un frein permanent</td></tr>
+  </tbody>
+</table>
+<p>Les codes à usage unique sont hachés en base, expirent, sont à usage unique,
+limités en tentatives, et un délai minimal sépare deux demandes pour le même
+numéro. Une demande visant un numéro inconnu produit la même réponse qu'une
+demande valide, afin de ne pas révéler quels numéros sont enregistrés.</p>
+
+<h3>7.5 SMS — file prioritaire et trace avant envoi</h3>
+<div class="note danger">
+  <span class="etiq">L'ordre des opérations</span>
+  <p><strong>Tout message est écrit en base avant d'être remis au
+  fournisseur.</strong> Si la passerelle tombe, la trace de ce qui aurait dû
+  partir subsiste et permet de réémettre. L'ordre inverse — envoyer puis
+  enregistrer — produirait des alertes disparues sans trace, c'est-à-dire la
+  défaillance la plus grave que ce système puisse connaître.</p>
+</div>
+<p>Une file de priorités ordonne les envois. Un vendredi soir à Douala, quand la
+file est chargée, une alerte doit passer avant un code de connexion, et un code
+de connexion avant une notification de confort :</p>
+<table>
+  <thead><tr><th style="width:28mm">Priorité</th><th style="width:32mm">Catégorie</th><th>Contenu</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1 — maximale</strong></td><td>Alerte</td><td>Danger en cours, position du véhicule</td></tr>
+    <tr><td>2</td><td>Annulation</td><td>Levée d'une alerte — crédibilité du dispositif</td></tr>
+    <tr><td>4</td><td>Code de connexion</td><td>Attendu activement par un utilisateur</td></tr>
+    <tr><td>5</td><td>Partage de trajet</td><td>Lien de suivi envoyé à un proche</td></tr>
+    <tr><td>8 — minimale</td><td>Notification</td><td>Objet perdu, changement de statut de dossier</td></tr>
+  </tbody>
+</table>
+
+<h3>7.6 Codes QR et stockage des pièces</h3>
+<p>Le <strong>format vectoriel</strong> s'imprime sans perte de netteté à toute
+taille, ce qui compte pour un autocollant exposé à l'usure. La génération est
+locale : aucun service externe ne reçoit l'identifiant d'un chauffeur. Le jeton
+est produit par un générateur aléatoire cryptographique, dans un alphabet
+excluant les caractères ambigus (<span class="mono">0</span>/<span class="mono">O</span>,
+<span class="mono">1</span>/<span class="mono">I</span>/<span class="mono">l</span>),
+afin qu'il puisse être saisi à la main si le scan échoue.</p>
+<p>Les <strong>pièces d'identité</strong> obéissent à trois règles cumulatives :
+<strong>(1)</strong> nom de fichier aléatoire, ne se déduisant d'aucune
+information connue ; <strong>(2)</strong> répertoire hors de toute racine servie
+statiquement — il n'existe aucune URL permettant d'atteindre une pièce, même en
+connaissant son nom ; <strong>(3)</strong> signature binaire confrontée au type
+déclaré, un exécutable présenté comme une photographie étant rejeté. Toute
+consultation passe par un point d'entrée authentifié qui vérifie le rôle et
+journalise l'accès.</p>
+
+<h3>7.7 Exploitation</h3>
+<table>
+  <thead><tr><th style="width:40mm">Élément</th><th>Exigence</th></tr></thead>
+  <tbody>
+    <tr><td>Hébergement</td><td>Serveur unique suffisant au démarrage ; l'architecture n'interdit pas la mise à l'échelle horizontale de l'API.</td></tr>
+    <tr><td>Sauvegardes</td><td>Sauvegarde quotidienne de la base et du stockage des pièces, restauration testée.</td></tr>
+    <tr><td>Purge</td><td>Tâche quotidienne de purge des positions au-delà de 30 jours, hors incidents ouverts.</td></tr>
+    <tr><td>Chiffrement en transit</td><td>HTTPS obligatoire sur tous les points d'entrée, sans exception.</td></tr>
+    <tr><td>Localisation des données</td><td>À arbitrer avec l'autorité de tutelle au regard de la loi n° 2024/017.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ===================== 8. INTEROPERABILITE ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 8</span>Interopérabilité avec le registre officiel</h2>
+
+<p>Le registre officiel est la source de vérité sur le <strong>droit
+d'exercer</strong>. Cette plateforme en conserve une copie vérifiée, jamais une
+interprétation.</p>
+
+<h3>8.1 Trois modes d'intégration</h3>
+<p>Par ordre de préférence. Le mode retenu dépend de ce que la CUY accepte
+d'ouvrir — c'est une décision institutionnelle avant d'être technique.</p>
+
+<table>
+  <thead><tr><th style="width:34mm">Mode</th><th style="width:44mm">Principe</th><th>Analyse</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>A · API de vérification</strong><br><span style="color:var(--gris)">cible</span></td>
+      <td>Le registre expose un point d'interrogation : à un identifiant, il répond validité, statut et les champs nécessaires au recoupement.</td>
+      <td>Le plus sûr et le plus frais. Suppose une convention et un accès authentifié.</td>
+    </tr>
+    <tr>
+      <td><strong>B · Export périodique</strong></td>
+      <td>La CUY transmet un fichier signé à intervalle convenu ; l'appairage se fait contre le dernier export.</td>
+      <td>Fonctionne sans développement côté registre. La fraîcheur est celle de l'export.</td>
+    </tr>
+    <tr>
+      <td><strong>C · Vérification assistée</strong><br><span style="color:var(--gris)">repli immédiat</span></td>
+      <td>L'agent consulte le registre par ses propres moyens et consigne le résultat. Le chauffeur fournit son identifiant, sans redéposer de pièces.</td>
+      <td>Ne demande aucune interface, mais ne passe pas à l'échelle.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note decision">
+  <span class="etiq">Exigence de conception</span>
+  <p>Le système doit être conçu pour que <strong>le passage d'un mode à l'autre
+  ne change ni le modèle de données, ni le parcours du chauffeur</strong>. Seul
+  le mécanisme de confirmation change. Le projet peut donc démarrer en mode C
+  sans rien attendre de la CUY, et basculer en mode A le jour où la convention
+  aboutit.</p>
+</div>
+
+<h3>8.2 Correspondance des statuts</h3>
+<table>
+  <thead><tr><th style="width:44mm">Registre officiel</th><th style="width:28mm">Ici</th><th>Signification pour le passager</th></tr></thead>
+  <tbody>
+    <tr><td>Enregistré et à jour</td><td><span class="mono">certifie</span></td><td>Vérifié par l'autorité compétente</td></tr>
+    <tr><td>— <span style="color:var(--gris)">(dossier local complet et validé)</span></td><td><span class="mono">verifie</span></td><td>Pièces contrôlées par la plateforme</td></tr>
+    <tr><td>Dossier en cours</td><td><span class="mono">en_examen</span></td><td>Non vérifié</td></tr>
+    <tr><td>Non trouvé</td><td><span class="mono">declare</span></td><td>Non vérifié — déclaré par lui seul</td></tr>
+    <tr><td>Radié ou suspendu</td><td><span class="mono">suspendu</span></td><td>Fortement déconseillé</td></tr>
+  </tbody>
+</table>
+<p>La distinction entre <span class="mono">certifie</span> et
+<span class="mono">verifie</span> est visible du passager : elle dit qui a
+contrôlé, et c'est une information qui lui appartient.</p>
+
+<h3>8.3 Règles de cohérence</h3>
+<ol>
+  <li><strong>Le registre prime.</strong> Toute divergence se tranche en faveur du registre officiel.</li>
+  <li><strong>Pas de rétrogradation silencieuse.</strong> Un chauffeur qui perd son statut est prévenu, avec le motif.</li>
+  <li><strong>Pas de promotion sans preuve de possession</strong> (EF-03).</li>
+  <li><strong>Unicité.</strong> Un identifiant officiel, un seul compte.</li>
+  <li><strong>Traçabilité.</strong> Chaque synchronisation est journalisée : ce qui a été demandé, reçu, et ce qui a changé.</li>
+  <li><strong>Réversibilité.</strong> La perte de l'interface ne doit jamais rendre les comptes existants inutilisables.</li>
+</ol>
+
+<h3>8.4 Ce qui reste à obtenir de la CUY</h3>
+<p>Ces points ne relèvent pas de la technique et conditionnent le mode A. Ils
+doivent être instruits tôt, en parallèle du développement.</p>
+<ul>
+  <li>Une convention d'accès au registre et le cadre juridique de l'échange.</li>
+  <li>La spécification de l'identifiant conducteur (format, unicité, cycle de vie) et du numéro de portière.</li>
+  <li>La liste des champs consultables et leur base légale au regard de la loi n° 2024/017.</li>
+  <li>La politique de notification des radiations et suspensions.</li>
+  <li>L'articulation avec la CUD pour Douala, dont le dispositif couvre à ce jour les moto-taxis.</li>
+</ul>
+</section>
+
+<!-- ===================== 9. API ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 9</span>Interfaces de programmation</h2>
+
+<p>L'API est le contrat entre les clients et le système. Les points d'entrée
+publics sont explicitement identifiés ; tous les autres exigent une
+authentification et un rôle.</p>
+
+<h3>9.1 Inventaire des points d'entrée</h3>
+
+<h4>Public — sans authentification</h4>
+<table>
+  <thead><tr><th style="width:56mm">Point d'entrée</th><th style="width:20mm">Accès</th><th>Rôle</th></tr></thead>
+  <tbody>
+    <tr><td><span class="mono">GET /s/{jeton}</span></td><td>Public</td><td>Page de scan — cible du QR imprimé</td></tr>
+    <tr><td><span class="mono">GET /api/scan/{jeton}</span></td><td>Public</td><td>Résolution d'un QR : identité publique, statut, véhicule</td></tr>
+    <tr><td><span class="mono">GET /t/{jetonSuivi}</span></td><td>Public</td><td>Page de suivi — cible du lien SMS envoyé au proche</td></tr>
+    <tr><td><span class="mono">GET /api/suivi/{jetonSuivi}</span></td><td>Public</td><td>État et position d'un trajet partagé, sans coordonnées de contact</td></tr>
+    <tr><td><span class="mono">GET /media/photos/…</span></td><td>Public</td><td>Photo de profil d'un chauffeur validé</td></tr>
+  </tbody>
+</table>
+
+<h4>Passager — session anonyme <span class="mono">x-session-passager</span></h4>
+<table>
+  <thead><tr><th style="width:56mm">Point d'entrée</th><th>Rôle</th></tr></thead>
+  <tbody>
+    <tr><td><span class="mono">POST /api/trajets</span></td><td>Démarrer un trajet après un scan</td></tr>
+    <tr><td><span class="mono">GET /api/trajets/courant</span></td><td>Trajet en cours de cette session, le cas échéant</td></tr>
+    <tr><td><span class="mono">POST /api/trajets/{j}/positions</span></td><td>Envoyer un lot de positions, horodatées à l'origine</td></tr>
+    <tr><td><span class="mono">POST /api/trajets/{j}/partage</span></td><td>Partager le trajet avec des proches par SMS</td></tr>
+    <tr><td><span class="mono">GET /api/trajets/{j}/contact-chauffeur</span></td><td><strong>Relais call center</strong> : numéro du call center et référence — jamais celui du chauffeur</td></tr>
+    <tr><td><span class="mono">POST /api/trajets/{j}/fin</span></td><td>Terminer le trajet</td></tr>
+    <tr><td><span class="mono">POST /api/trajets/{j}/alerte</span></td><td>Déclencher l'alerte d'urgence</td></tr>
+    <tr><td><span class="mono">POST /api/trajets/{j}/alerte/annulation</span></td><td>Annuler une alerte déclenchée par erreur</td></tr>
+    <tr><td><span class="mono">POST /api/signalements</span></td><td>Signaler une anomalie</td></tr>
+    <tr><td><span class="mono">POST /api/objets-perdus/trajet/{j}</span></td><td>Déclarer un objet oublié ; le chauffeur reçoit un SMS</td></tr>
+  </tbody>
+</table>
+
+<h4>Chauffeur, agent et administrateur — jeton authentifié</h4>
+<table>
+  <thead><tr><th style="width:56mm">Point d'entrée</th><th style="width:22mm">Rôle requis</th><th>Objet</th></tr></thead>
+  <tbody>
+    <tr><td><span class="mono">POST /api/auth/otp/demande</span></td><td>—</td><td>Demander un code de connexion par SMS</td></tr>
+    <tr><td><span class="mono">POST /api/auth/otp/verification</span></td><td>—</td><td>Vérifier le code et obtenir un jeton</td></tr>
+    <tr><td><span class="mono">POST /api/auth/connexion</span></td><td>—</td><td>Connexion par mot de passe (agents, opérateurs)</td></tr>
+    <tr><td><span class="mono">POST /api/chauffeurs/inscription</span></td><td>—</td><td>Inscription locale, statut <span class="mono">declare</span></td></tr>
+    <tr><td><span class="mono">POST /api/documents</span></td><td>chauffeur</td><td>Téléverser une pièce justificative</td></tr>
+    <tr><td><span class="mono">GET /api/documents/mon-dossier</span></td><td>chauffeur</td><td>État du dossier et pièces manquantes</td></tr>
+    <tr><td><span class="mono">GET /api/chauffeurs/file-validation</span></td><td>agent</td><td>Dossiers en attente, urgence au-delà de 48 h</td></tr>
+    <tr><td><span class="mono">POST /api/documents/{id}/examen</span></td><td>agent</td><td>Verdict sur une pièce</td></tr>
+    <tr><td><span class="mono">POST /api/chauffeurs/{id}/validation</span></td><td>agent</td><td>Valider ou rejeter un dossier</td></tr>
+    <tr><td><span class="mono">GET /api/alertes</span></td><td>agent</td><td>Alertes de son autorité</td></tr>
+    <tr><td><span class="mono">POST /api/alertes/{id}/cloture</span></td><td>agent</td><td>Clore une alerte après traitement</td></tr>
+    <tr><td><span class="mono">POST /api/signalements/traitement/{id}</span></td><td>agent</td><td>Traiter un signalement, avec suspension éventuelle</td></tr>
+    <tr><td><span class="mono">POST /api/auth/agents</span></td><td>admin</td><td>Créer un compte agent</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 Limitation de débit</h3>
+<p>Chaque point d'entrée porte une limite ajustée à son usage réel. Les valeurs
+traduisent une politique, non un réglage technique.</p>
+<table>
+  <thead><tr><th style="width:40mm">Point d'entrée</th><th style="width:30mm">Limite</th><th>Raison</th></tr></thead>
+  <tbody>
+    <tr><td>Scan d'un QR</td><td>20 / minute</td><td>Un QR légitime est scanné quelques fois par jour ; un débit élevé signale une énumération de jetons</td></tr>
+    <tr><td><strong>Alerte</strong></td><td><strong>30 / minute</strong></td><td><strong>Volontairement peu bridé</strong> — le seul cas où quelqu'un appuie en boucle est celui où il panique</td></tr>
+    <tr><td>Demande de code SMS</td><td>5 / 10 minutes</td><td>Limite le coût et l'usage de la plateforme comme outil de nuisance</td></tr>
+    <tr><td>Partage de trajet</td><td>10 / heure</td><td>Empêche l'envoi massif de SMS depuis une session</td></tr>
+    <tr><td>Téléversement de pièce</td><td>30 / heure</td><td>Un dossier compte quatre pièces ; la marge couvre les reprises</td></tr>
+    <tr><td>Relais call center</td><td>20 / heure</td><td>Un objet oublié ne se déclare pas cent fois</td></tr>
+  </tbody>
+</table>
+
+<h3>9.3 Conventions</h3>
+<ul>
+  <li><strong>Validation stricte.</strong> Tout champ non déclaré est refusé, et non silencieusement ignoré.</li>
+  <li><strong>Codes d'erreur explicites.</strong> <span class="mono">404</span> code inconnu ou révoqué ; <span class="mono">403</span> le trajet appartient à une autre session ; <span class="mono">409</span> état incompatible (trajet non terminé, alerte déjà active).</li>
+  <li><strong>Messages destinés à l'usager.</strong> Les réponses d'erreur du parcours passager sont rédigées pour être affichées telles quelles, en français, sans jargon.</li>
+  <li><strong>Adresses lisibles.</strong> Les adresses imprimées sur un QR ou envoyées par SMS échappent au préfixe technique : leur brièveté fait partie du produit.</li>
+  <li><strong>Documentation générée</strong> depuis le code, avec indication explicite des points d'entrée publics.</li>
+</ul>
+</section>
+
+<!-- ===================== 10. RECETTE ET RISQUES ===================== -->
+<section class="chap">
+<h2><span class="num">Chapitre 10</span>Recette et risques</h2>
+
+<h3>10.1 Critères d'acceptation</h3>
+<p>La livraison est acceptée si, sur un environnement de démonstration,
+l'ensemble des critères suivants est vérifié.</p>
+<table>
+  <thead><tr><th class="ref">Réf</th><th>Critère</th><th style="width:20mm">Exigences</th></tr></thead>
+  <tbody>
+    <tr><td class="ref">REC-01</td><td>Un QR scanné affiche les informations attendues sans compte ni application, sur une connexion dégradée.</td><td>EF-01</td></tr>
+    <tr><td class="ref">REC-02</td><td>Aucune réponse d'API destinée au passager ne contient de numéro de chauffeur — vérifié par test automatisé portant sur la requête SQL elle-même.</td><td>EF-08.1</td></tr>
+    <tr><td class="ref">REC-03</td><td>Un chauffeur muni d'un identifiant officiel obtient un compte sans redéposer de pièces.</td><td>EF-02.1</td></tr>
+    <tr><td class="ref">REC-04</td><td>Un identifiant officiel public, sans facteur supplémentaire, ne permet pas de créer un compte.</td><td>EF-03.1</td></tr>
+    <tr><td class="ref">REC-05</td><td>Une suspension révoque le QR immédiatement ; le scan suivant affiche l'avertissement.</td><td>EF-07.2</td></tr>
+    <tr><td class="ref">REC-06</td><td>Une alerte atteint les proches et l'autorité engagée ; une double pression ne crée pas de doublon.</td><td>EF-06</td></tr>
+    <tr><td class="ref">REC-07</td><td>Un trajet suivi hors réseau puis reconnecté conserve les horodatages d'origine.</td><td>EF-05.5</td></tr>
+    <tr><td class="ref">REC-08</td><td>Une demande de mise en relation produit une référence stable et une entrée d'audit.</td><td>EF-08.3</td></tr>
+    <tr><td class="ref">REC-09</td><td>Une validation est refusée tant que les quatre pièces ne sont pas déposées et lisibles.</td><td>EF-04.2</td></tr>
+    <tr><td class="ref">REC-10</td><td>Une indisponibilité simulée du registre officiel ne dégrade ni le scan, ni le suivi, ni l'alerte.</td><td>ENF-19</td></tr>
+    <tr><td class="ref">REC-11</td><td>Une panne simulée de la passerelle SMS laisse l'alerte enregistrée et traitable.</td><td>ENF-20</td></tr>
+    <tr><td class="ref">REC-12</td><td>La suite de tests automatisés passe intégralement.</td><td>ENF-22</td></tr>
+  </tbody>
+</table>
+
+<h3>10.2 Registre des risques</h3>
+<table>
+  <thead><tr><th style="width:38mm">Risque</th><th style="width:36mm">Effet</th><th>Traitement</th></tr></thead>
+  <tbody>
+    <tr><td>Pas d'accès au registre officiel</td><td>Double saisie, adoption compromise</td><td>Modes B et C conçus dès l'origine ; §8.4 à instruire tôt. Le projet peut démarrer sans la CUY.</td></tr>
+    <tr><td>Usurpation à l'appairage</td><td>Compte créé au nom d'un chauffeur honnête</td><td>Preuve de possession obligatoire (EF-03), tentatives limitées et journalisées</td></tr>
+    <tr><td>Faux QR imprimés</td><td>Confiance détournée au profit d'un véhicule non déclaré</td><td>Jeton non devinable, débit limité, avertissement explicite sur code inconnu</td></tr>
+    <tr><td><strong>Alerte non délivrée</strong></td><td><strong>Défaillance la plus grave possible</strong></td><td>Écriture avant envoi, priorité SMS maximale, réémission, trace de ce qui aurait dû partir</td></tr>
+    <tr><td>Call center saturé</td><td>Le besoin légitime n'aboutit pas</td><td>Déclaration d'objet par SMS sans appel (EF-08.7) ; horaires affichés au passager</td></tr>
+    <tr><td>Signalements abusifs</td><td>Chauffeur suspendu à tort</td><td>Suspension motivée, tracée, prononcée par une personne habilitée — jamais automatique</td></tr>
+    <tr><td>Divergence de statut avec le registre</td><td>Information fausse présentée au passager</td><td>Le registre prime, resynchronisation périodique, notification du chauffeur</td></tr>
+    <tr><td>Adoption faible côté chauffeurs</td><td>Trop peu de QR en circulation pour créer l'habitude</td><td>Appairage sans redépôt (EF-02.1) ; le QR vérifié comme argument commercial</td></tr>
+  </tbody>
+</table>
+
+<h3>10.3 État d'avancement</h3>
+<p>Le socle technique est réalisé : vérification par QR, inscription et
+validation locales, suivi de trajet, partage aux proches, alerte, signalement,
+suspension et relais call center sont opérationnels et couverts par
+<strong>168 tests automatisés</strong>. Restent à traiter, par ordre de
+priorité : l'appairage au registre officiel (EF-02, EF-03), l'interface de
+l'opérateur de call center (EF-08.6, EF-08.8), et la synchronisation périodique
+des statuts (EF-02.7).</p>
+
+<h3>Sources</h3>
+<p style="font-size:7.6pt;color:var(--gris)">
+Digital Business Africa, « La plateforme digitale www.taxiyaounde.com lancée
+pour sécuriser le transport urbain ». — Agence Ecofin, « Yaoundé modernise ses
+taxis avec un identifiant numérique unique ». — We Are Tech Africa, « Le
+Cameroun instaure un identifiant numérique pour les taxis de Yaoundé ». —
+allAfrica, « Enregistrement digital obligatoire pour tous les taxis exerçant à
+Yaoundé ». — News du Cameroun, « Douala : une plateforme numérique pour
+identifier les moto-taxis ».
+</p>
+</section>
+
+</body>
+</html>

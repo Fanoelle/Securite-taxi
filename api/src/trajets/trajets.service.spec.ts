@@ -277,25 +277,65 @@ describe('TrajetsService', () => {
   });
 
   /**
-   * Le numéro du chauffeur est une donnée personnelle : il ne sort que
-   * pour la personne qui a réellement fait la course, et seulement une
-   * fois celle-ci terminée.
+   * Le numéro du chauffeur ne sort jamais de l'API. Le passager qui a
+   * oublié un objet passe par le call center, avec une référence de
+   * dossier. Les conditions d'accès à cette référence restent celles du
+   * trajet : course terminée, session propriétaire, consultation tracée.
    */
   describe('contactChauffeur', () => {
     const termine = {
       id: 'tr-1', etat: 'termine', session_passager: 'session-du-passager',
-      termine_le: new Date(), nom: 'NGONO', prenom: 'Paul',
-      telephone: '+237699452108',
+      termine_le: new Date(), reference_relais: 'R-ABC123',
     };
 
-    it('donne le numéro au passager après le trajet', async () => {
+    it('donne le call center et une référence, jamais le numéro', async () => {
       base.premier.mockResolvedValue(termine);
 
       const r = await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
 
-      // Le numéro est mis en forme pour être lu et composé à la main.
-      expect(r.telephone.replace(/\s/g, '')).toBe('+237699452108');
-      expect(r.nom).toBe('NGONO');
+      expect(r.callCenter).toBeTruthy();
+      expect(r.reference).toBe('R-ABC123');
+      // L'invariant central : aucun numéro de chauffeur dans la réponse.
+      expect(JSON.stringify(r)).not.toContain('699452108');
+      expect(r).not.toHaveProperty('telephone');
+      expect(r).not.toHaveProperty('nom');
+    });
+
+    it('ne lit jamais le téléphone du chauffeur en base', async () => {
+      base.premier.mockResolvedValue(termine);
+
+      await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
+
+      // Si la requête ne joint pas `compte`, le numéro ne peut pas fuiter
+      // par une évolution ultérieure de la projection.
+      const lecture = base.premier.mock.calls[0][0] as string;
+      expect(lecture).not.toContain('telephone');
+      expect(lecture).not.toContain('JOIN compte');
+    });
+
+    it('réutilise la référence existante au lieu d\'en créer une seconde', async () => {
+      base.premier.mockResolvedValue(termine);
+
+      await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
+
+      const creation = base.requete.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('SET reference_relais'),
+      );
+      expect(creation).toBeUndefined();
+    });
+
+    it('crée une référence à la première demande', async () => {
+      base.premier
+        .mockResolvedValueOnce({ ...termine, reference_relais: null })
+        .mockResolvedValueOnce({ reference_relais: 'R-NOUVEAU' });
+
+      const r = await service.contactChauffeur('session-du-passager', 'ABC123XYZ4');
+
+      expect(r.reference).toBe('R-NOUVEAU');
+      const creation = base.requete.mock.calls.find(
+        ([sql]) => typeof sql === 'string' && sql.includes('SET reference_relais'),
+      );
+      expect(creation).toBeDefined();
     });
 
     it('trace la consultation dans le journal d\'audit', async () => {
@@ -307,7 +347,7 @@ describe('TrajetsService', () => {
         ([sql]) => typeof sql === 'string' && sql.includes('journal_audit'),
       );
       expect(ecriture).toBeDefined();
-      expect(ecriture![0]).toContain('trajet.contact_chauffeur');
+      expect(ecriture![0]).toContain('trajet.relais_call_center');
     });
 
     it('refuse tant que le trajet n\'est pas terminé', async () => {

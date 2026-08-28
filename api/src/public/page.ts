@@ -267,7 +267,7 @@ ${fini ? `
   <div id="oubli" hidden>
     <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.8px;
                color:var(--gris);margin:16px 0 8px">Un oubli dans le taxi ?</h3>
-    <button class="b2" id="voirContact">Voir le numéro du chauffeur</button>
+    <button class="b2" id="voirContact">Joindre le chauffeur via le call center</button>
     <div id="contact"></div>
 
     <div style="margin-top:18px;padding-top:16px;border-top:1px solid #EDE9E0">
@@ -389,13 +389,16 @@ function activerCommandes(){
  * les commandes que si c'est celui-ci.
  */
 /**
- * Le numéro du chauffeur, réservé à celui qui a fait la course.
- * Le serveur revérifie la session et l'état du trajet : cet affichage
- * n'est qu'une commodité, jamais le contrôle d'accès.
+ * Mise en relation par le call center. Le numéro du chauffeur n'arrive
+ * jamais jusqu'ici : le serveur renvoie le numéro du call center et une
+ * référence de dossier. Le serveur revérifie la session et l'état du
+ * trajet ; cet affichage n'est qu'une commodité, jamais le contrôle
+ * d'accès.
  */
 function activerOubli(){
   const z=$('oubli');if(!z)return;
   z.hidden=false;
+  const LIB_CONTACT='Joindre le chauffeur via le call center';
   $('voirContact').onclick=async()=>{
     const b=$('voirContact');b.disabled=true;b.textContent='…';
     try{
@@ -404,16 +407,16 @@ function activerOubli(){
       if(r.ok){
         b.style.display='none';
         $('contact').innerHTML=
-          '<div class="ligne"><dt>Chauffeur</dt><dd>'+
-          (d.prenom||'')+' '+(d.nom||'')+'</dd></div>'+
-          '<div class="ligne"><dt>Téléphone</dt><dd><a href="tel:'+
-          String(d.telephone).replace(/\\s/g,'')+'" style="color:var(--vert)">'+
-          d.telephone+'</a></dd></div>'+
+          '<div class="ligne"><dt>Call center</dt><dd><a href="tel:'+
+          String(d.callCenter).replace(/\\s/g,'')+'" style="color:var(--vert)">'+
+          d.callCenter+'</a></dd></div>'+
+          '<div class="ligne"><dt>Votre référence</dt><dd>'+d.reference+'</dd></div>'+
+          '<div class="ligne"><dt>Horaires</dt><dd>'+d.horaires+'</dd></div>'+
           '<p class="muet" style="margin-top:10px">'+d.message+'</p>';
-      }else{b.disabled=false;b.textContent='Voir le numéro du chauffeur';
+      }else{b.disabled=false;b.textContent=LIB_CONTACT;
         $('contact').innerHTML='<p class="muet" style="margin-top:10px">'+
           (d.message||'Indisponible.')+'</p>'}
-    }catch(e){b.disabled=false;b.textContent='Voir le numéro du chauffeur'}
+    }catch(e){b.disabled=false;b.textContent=LIB_CONTACT}
   };
 
   // Déclarer l'objet plutôt qu'appeler : le chauffeur reçoit la

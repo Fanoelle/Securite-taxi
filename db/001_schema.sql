@@ -252,6 +252,11 @@ CREATE TABLE trajet (
     -- Purge des positions a 30 jours sauf incident (voir 010_retention.sql).
     positions_purgees_le timestamptz,
 
+    -- Reference donnee au passager pour joindre le call center apres la
+    -- course (objet oublie). Le numero du chauffeur n'est jamais divulgue :
+    -- l'operateur fait le relais. Cree a la premiere demande seulement.
+    reference_relais    text UNIQUE,
+
     CONSTRAINT coherence_fin
       CHECK (termine_le IS NULL OR termine_le >= demarre_le)
 );

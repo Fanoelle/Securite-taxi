@@ -25,12 +25,19 @@ const DUREE_TRAJET_MAX_HEURES = 12;
 @Injectable()
 export class TrajetsService {
   private readonly logger = new Logger(TrajetsService.name);
+  private readonly callCenter: string;
+  private readonly callCenterHoraires: string;
 
   constructor(
     private readonly base: BaseService,
     private readonly sms: SmsService,
     private readonly config: ConfigService,
-  ) {}
+  ) {
+    this.callCenter = this.config.get<string>('CALL_CENTER_NUMERO', '8080');
+    this.callCenterHoraires = this.config.get<string>(
+      'CALL_CENTER_HORAIRES', 'tous les jours, 6h - 22h',
+    );
+  }
 
   /**
    * Demarrage d'un trajet, juste apres le scan.
@@ -382,26 +389,29 @@ export class TrajetsService {
    * piloter le trajet de quelqu'un d'autre.
    */
   /**
-   * Numéro du chauffeur, pour un objet oublié.
+   * Mise en relation pour un objet oublié — sans divulguer le numéro.
    *
-   * Trois conditions, et aucune n'est accessoire :
+   * Le passager n'obtient jamais le téléphone du chauffeur. Il obtient
+   * le numéro du call center et une référence de dossier. C'est un choix
+   * de conception, pas une restriction technique :
    *
-   *  1. Seule la session qui a fait la course l'obtient. Le proche qui
-   *     suit le trajet par SMS n'y a pas droit.
-   *  2. Le trajet doit être terminé. Un numéro donné au scan serait
-   *     récupérable en masse par quiconque scanne des QR, sans jamais
-   *     monter dans le véhicule.
-   *  3. La consultation est tracée. Ce numéro est une donnée personnelle
-   *     du chauffeur : savoir qui y a accédé et quand est le minimum
-   *     qu'on lui doit.
+   *  1. Un numéro personnel remis à un inconnu ne se reprend plus. Le
+   *     chauffeur n'a aucun moyen de revenir en arrière, alors qu'il n'a
+   *     pas choisi son passager.
+   *  2. Le harcèlement après course — insultes, représailles suite à un
+   *     litige de prix — passe par ce canal dès qu'il existe. Le call
+   *     center peut refuser une mise en relation ; un numéro déjà donné,
+   *     non.
+   *  3. L'opérateur voit les deux versions, garde une trace, et peut
+   *     escalader vers l'autorité si l'objet ne réapparaît pas.
+   *
+   * Les mêmes conditions d'accès qu'avant s'appliquent à la référence :
+   * course terminée, session propriétaire, consultation tracée.
    */
   async contactChauffeur(session: string, jetonSuivi: string) {
     const trajet = await this.base.premier<any>(
-      `SELECT t.id, t.etat, t.session_passager, t.termine_le,
-              c.nom, c.prenom, cp.telephone
+      `SELECT t.id, t.etat, t.session_passager, t.termine_le, t.reference_relais
          FROM trajet t
-         JOIN chauffeur c ON c.id = t.chauffeur_id
-         JOIN compte   cp ON cp.id = c.compte_id
         WHERE t.jeton_suivi = $1`,
       [jetonSuivi.trim()],
     );
@@ -410,31 +420,47 @@ export class TrajetsService {
 
     if (trajet.session_passager !== session) {
       this.logger.warn(
-        `Session ${session.slice(0, 8)}… a demandé le contact du trajet ${jetonSuivi}`,
+        `Session ${session.slice(0, 8)}… a demandé le relais du trajet ${jetonSuivi}`,
       );
       throw new ForbiddenException('Ce trajet n\'appartient pas à cette session.');
     }
 
     if (trajet.etat !== 'termine') {
       throw new ConflictException(
-        'Le numéro du chauffeur est disponible une fois le trajet terminé.',
+        'La mise en relation est disponible une fois le trajet terminé.',
       );
+    }
+
+    // La référence est stable : rappeler deux fois le call center pour le
+    // même trajet doit tomber sur le même dossier, pas en ouvrir un second.
+    let reference = trajet.reference_relais;
+    if (!reference) {
+      reference = `R-${genererJeton(6)}`;
+      await this.base.requete(
+        'UPDATE trajet SET reference_relais = $2 WHERE id = $1 AND reference_relais IS NULL',
+        [trajet.id, reference],
+      );
+      const relu = await this.base.premier<any>(
+        'SELECT reference_relais FROM trajet WHERE id = $1', [trajet.id],
+      );
+      reference = relu?.reference_relais ?? reference;
     }
 
     await this.base.requete(
       `INSERT INTO journal_audit (action, entite, entite_id, details)
-       VALUES ('trajet.contact_chauffeur', 'trajet', $1, $2)`,
-      [trajet.id, JSON.stringify({ jetonSuivi: trajet.jeton_suivi ?? jetonSuivi })],
+       VALUES ('trajet.relais_call_center', 'trajet', $1, $2)`,
+      [trajet.id, JSON.stringify({ jetonSuivi: jetonSuivi.trim(), reference })],
     );
 
     return {
-      nom: trajet.nom,
-      prenom: trajet.prenom,
-      telephone: formaterTelephone(trajet.telephone),
+      callCenter: this.callCenter,
+      reference,
+      horaires: this.callCenterHoraires,
       message:
-        'Appelez le chauffeur si vous avez oublié quelque chose. ' +
-        'Vous pouvez aussi déclarer l\'objet : il recevra un SMS avec ' +
-        'votre description.',
+        'Appelez le call center en donnant cette référence : un opérateur ' +
+        'joint le chauffeur pour vous. Pour des raisons de sécurité, son ' +
+        'numéro personnel ne vous est pas communiqué. Vous pouvez aussi ' +
+        'décrire l\'objet ci-dessous : il recevra un SMS et pourra répondre.',
     };
   }
 
