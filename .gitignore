@@ -23,3 +23,6 @@ npm-debug.log*
 
 # Les captures de test-visuel/captures/ sont versionnées à dessein :
 # elles montrent à quoi ressemble le produit sans avoir à le lancer.
+
+# Profil du navigateur de test : 146 Mo de cache, régénéré à chaque run.
+test-visuel/.chr/

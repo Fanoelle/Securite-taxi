@@ -13,6 +13,7 @@ async function demarrer() {
     exclude: [
       's/:jeton', 't/:jetonSuivi', '',
       'chauffeur', 'chauffeur/inscription', 'chauffeur/connexion',
+      'agent', 'agent/connexion',
       'media/photos/:sousRepertoire/:nom',
     ],
   });

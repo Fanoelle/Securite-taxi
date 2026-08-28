@@ -142,10 +142,14 @@ Autres comptes selon l'état de dossier à observer — mot de passe commun
 
 #### L'écran agent
 
-Pas de page dédiée à ce jour : l'agent passe par la documentation
-interactive `http://localhost:3000/api/docs`. Se connecter avec
-`699000002` / `DeveloppementSecuriTaxi2026`, coller le jeton dans
-**Authorize**, puis appeler `/api/chauffeurs/file-validation`.
+`http://localhost:3000/agent/connexion`, avec `699000002` /
+`DeveloppementSecuriTaxi2026`. La file ne montre que les dossiers de la
+commune de l'agent — la ville vient du jeton, jamais de l'URL.
+
+Ouvrir un dossier, déplier chaque pièce, rendre un verdict. Le bouton de
+validation reste grisé tant que les quatre pièces requises ne sont pas
+jugées lisibles ; ce n'est qu'un confort d'affichage, le serveur refuse
+de toute façon. La validation produit le code QR à l'écran.
 
 ---
 
@@ -438,7 +442,7 @@ garde une trace des deux versions.
 
 ## Limites connues
 
-- Pas d'écran agent ni d'écran superadmin (Swagger uniquement).
+- Pas d'écran superadmin : la supervision passe par Swagger.
 - `db/verifier.sh` échoue sur `CREATE EXTENSION postgis` (droits
   superuser). La plateforme tourne sans.
 - L'envoi de SMS réel (Nexah) n'a pas été testé contre le fournisseur ;

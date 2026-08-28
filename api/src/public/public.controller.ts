@@ -14,6 +14,7 @@ import {
 import {
   pageInscription, pageConnexion, pageDossier,
 } from './page-chauffeur';
+import { pageAgent, pageAgentConnexion } from './page-agent';
 
 /**
  * Les deux adresses que le monde extérieur connaît.
@@ -119,6 +120,29 @@ export class PublicController {
   @ApiOperation({ summary: 'Dossier du chauffeur et son code QR' })
   async dossier(@Res() res: Response) {
     res.type('html').send(pageDossier());
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* L'agent de validation.                                            */
+  /*                                                                   */
+  /* Ces pages ne sont que des gabarits : elles ne contiennent aucune  */
+  /* donnée. Tout passe ensuite par l'API, sous jeton — un dossier de  */
+  /* chauffeur ne doit jamais être rendu par une adresse ouverte.      */
+  /* ---------------------------------------------------------------- */
+
+  @Get('agent/connexion')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ summary: 'Connexion de l\'agent de validation' })
+  async agentConnexion(@Res() res: Response) {
+    res.type('html').send(pageAgentConnexion());
+  }
+
+  /** File de validation, examen des pièces, décision. */
+  @Get('agent')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ summary: 'Espace agent : dossiers a valider' })
+  async agent(@Res() res: Response) {
+    res.type('html').send(pageAgent());
   }
 
   /** Racine : sans QR à scanner, il n'y a rien à montrer. */
