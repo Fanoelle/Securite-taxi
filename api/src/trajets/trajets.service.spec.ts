@@ -274,6 +274,74 @@ describe('TrajetsService', () => {
       base.premier.mockResolvedValue(null);
       await expect(service.suivrePublic('INCONNU')).rejects.toThrow(NotFoundException);
     });
+
+    /**
+     * L'itinéraire parcouru, tracé sans fond de carte ni service
+     * externe : la page doit rester légère sur un réseau 2G.
+     */
+    describe('parcours', () => {
+      const trajetEnCours = {
+        id: 't-1', jeton_suivi: 'ABC123XYZ4', etat: 'en_cours',
+        demarre_le: new Date(), statut_chauffeur_au_scan: 'verifie',
+        nom: 'N', prenom: 'P', plaque: 'LT452AB', ville: 'Douala',
+      };
+
+      const monterParcours = (points: Array<[number, number]>) => {
+        base.premier
+          .mockResolvedValueOnce(trajetEnCours)
+          .mockResolvedValueOnce(null);
+        base.requete.mockImplementation(async (sql: string) =>
+          /FROM numerotees|position_trajet/.test(sql)
+            ? points.map(([lat, lon]) => ({
+                latitude: String(lat), longitude: String(lon), mesure_le: new Date(),
+              }))
+            : [],
+        );
+      };
+
+      it('rend le parcours en nombres, prêt à tracer', async () => {
+        monterParcours([[4.0470, 9.6920], [4.0518, 9.7012], [4.0631, 9.7238]]);
+
+        const r = await service.suivrePublic('ABC123XYZ4');
+
+        expect(r.parcours).toHaveLength(3);
+        // Le SVG ne peut rien faire de chaînes : la conversion est ici,
+        // pas dans le navigateur.
+        expect(r.parcours[0]).toEqual({ latitude: 4.047, longitude: 9.692 });
+      });
+
+      it('calcule la distance sans dépendre de PostGIS', async () => {
+        // Un degré de latitude vaut environ 111 km ; 0,01° ≈ 1,1 km.
+        monterParcours([[4.0000, 9.7000], [4.0100, 9.7000]]);
+
+        const r = await service.suivrePublic('ABC123XYZ4');
+
+        expect(r.distanceKm).toBeGreaterThan(1.0);
+        expect(r.distanceKm).toBeLessThan(1.2);
+      });
+
+      it('échantillonne pour ne pas saturer un réseau 2G', async () => {
+        base.premier.mockResolvedValueOnce(trajetEnCours).mockResolvedValueOnce(null);
+        base.requete.mockResolvedValue([]);
+
+        await service.suivrePublic('ABC123XYZ4');
+
+        const lecture = base.requete.mock.calls.find(
+          ([sql]) => typeof sql === 'string' && /numerotees/.test(sql),
+        );
+        expect(lecture).toBeDefined();
+        // La borne est passée en paramètre, jamais interpolée.
+        expect(lecture![1]).toContain(60);
+      });
+
+      it('ne trace rien avec moins de deux points', async () => {
+        monterParcours([[4.0470, 9.6920]]);
+
+        const r = await service.suivrePublic('ABC123XYZ4');
+
+        expect(r.distanceKm).toBe(0);
+      });
+    });
   });
 
   /**

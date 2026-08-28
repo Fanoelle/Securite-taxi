@@ -22,6 +22,14 @@ const DERIVE_HORLOGE_MAX_MS = 24 * 60 * 60 * 1000;
 /** Un trajet oublie n'est pas un trajet en cours. */
 const DUREE_TRAJET_MAX_HEURES = 12;
 
+/**
+ * Nombre de points renvoyes pour tracer le parcours. Au-dela, on
+ * echantillonne : une heure de trajet accumule des centaines de
+ * positions, et la page doit rester legere sur un reseau 2G. Une
+ * soixantaine de points suffit a dessiner une forme reconnaissable.
+ */
+const PARCOURS_POINTS_MAX = 60;
+
 @Injectable()
 export class TrajetsService {
   private readonly logger = new Logger(TrajetsService.name);
@@ -323,6 +331,26 @@ export class TrajetsService {
       [trajet.id],
     );
 
+    // Le parcours déjà accompli, pour le tracer. Un trajet d'une heure
+    // accumule des centaines de points : on échantillonne côté base
+    // plutôt que d'envoyer le tout sur un réseau 2G. Une soixantaine de
+    // points suffit à dessiner une forme reconnaissable.
+    const parcours = await this.base.requete<any>(
+      `WITH numerotees AS (
+         SELECT latitude, longitude, mesure_le,
+                row_number() OVER (ORDER BY mesure_le) AS rang,
+                count(*)     OVER ()                   AS total
+           FROM position_trajet
+          WHERE trajet_id = $1
+       )
+       SELECT latitude, longitude, mesure_le
+         FROM numerotees
+        WHERE rang = 1 OR rang = total
+           OR mod(rang, GREATEST(1, (total / $2)::int)) = 0
+        ORDER BY mesure_le`,
+      [trajet.id, PARCOURS_POINTS_MAX],
+    );
+
     // Marquer la consultation : savoir si le proche a ouvert le lien est
     // ce qui permet de mesurer l'utilite reelle du partage.
     await this.base.requete(
@@ -359,7 +387,46 @@ export class TrajetsService {
             ),
           }
         : null,
+      parcours: parcours.map((p) => ({
+        latitude: Number(p.latitude),
+        longitude: Number(p.longitude),
+      })),
+      distanceKm: this.distanceParcourue(parcours),
     };
+  }
+
+  /**
+   * Distance du parcours, en kilomètres.
+   *
+   * Calcul local plutôt que par PostGIS : l'extension est optionnelle
+   * (voir db/004_postgis.sql) et le suivi ne doit pas cesser de
+   * fonctionner là où elle n'est pas installée. Sur les quelques
+   * kilomètres d'une course urbaine, la formule de Haversine est
+   * largement assez précise.
+   */
+  private distanceParcourue(points: Array<{ latitude: any; longitude: any }>): number {
+    if (points.length < 2) return 0;
+
+    const RAYON_TERRE_KM = 6371;
+    const rad = (d: number) => (d * Math.PI) / 180;
+    let total = 0;
+
+    for (let i = 1; i < points.length; i++) {
+      const lat1 = Number(points[i - 1].latitude);
+      const lon1 = Number(points[i - 1].longitude);
+      const lat2 = Number(points[i].latitude);
+      const lon2 = Number(points[i].longitude);
+
+      const dLat = rad(lat2 - lat1);
+      const dLon = rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+
+      total += 2 * RAYON_TERRE_KM * Math.asin(Math.sqrt(a));
+    }
+
+    return Math.round(total * 10) / 10;
   }
 
   /** Trajet en cours de la session, s'il y en a un. */

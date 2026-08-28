@@ -32,7 +32,7 @@ coûtent rien.
 npm test
 ```
 
-168 tests, une dizaine de secondes. C'est ce qu'il faut lancer après
+172 tests, une dizaine de secondes. C'est ce qu'il faut lancer après
 toute modification. Aucune base n'est requise : les accès sont simulés.
 
 ```bash

@@ -177,6 +177,21 @@ accessoire : la course doit être terminée, la session doit être celle
 qui l'a faite (un proche qui suit le trajet n'y a pas droit), et chaque
 demande est écrite dans `journal_audit`.
 
+**L'itinéraire.** Le parcours accompli est tracé sur la page de suivi,
+avec la distance parcourue. Le passager le voit, et son proche aussi via
+le lien qu'il a reçu.
+
+Le tracé est un **SVG dessiné à partir des positions enregistrées**, sans
+fond de carte : une carte à tuiles chargerait une bibliothèque et des
+dizaines d'images au moment précis où la page doit rester légère. Il ne
+donne donc pas les noms de rues, mais il montre la forme du trajet —
+assez pour reconnaître un itinéraire habituel, et surtout pour voir qu'il
+s'en écarte.
+
+Un trajet d'une heure accumule des centaines de positions ; l'API en
+renvoie une soixantaine, échantillonnées en base. 400 points stockés
+donnent environ 3 Ko sur le réseau.
+
 ### Le proche — un lien reçu par SMS
 
 Il ouvre `/t/:jeton` et voit le trajet se mettre à jour. Pas de compte
@@ -260,7 +275,7 @@ securite-taxi-cameroun/
 └── test-visuel/      banc d'essai montrant les appels HTTP
 ```
 
-**7 000 lignes de TypeScript, 19 tables, 168 tests.**
+**7 000 lignes de TypeScript, 19 tables, 172 tests.**
 
 ### Choix techniques
 
@@ -314,7 +329,7 @@ Quatre niveaux, du plus rapide au plus manuel. Guide détaillé :
 ### 1. Tests automatiques
 
 ```bash
-npm test              # 168 tests, ~10 s, aucune base requise
+npm test              # 172 tests, ~10 s, aucune base requise
 npm run typecheck
 ```
 

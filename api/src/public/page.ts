@@ -235,6 +235,18 @@ export function pageTrajet(d: any, jetonSuivi: string, _proprietaire = false): s
   </dl>
 </div>
 
+<div class="carte seule" id="blocParcours" hidden>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;
+              margin-bottom:10px">
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.8px;
+               color:var(--gris);margin:0">Votre itinéraire</h3>
+    <span class="muet" id="distance"></span>
+  </div>
+  <svg id="trace" viewBox="0 0 300 190" style="width:100%;height:auto;
+       background:#FAF8F3;border-radius:10px" aria-label="Tracé du trajet"></svg>
+  <p class="muet" id="legendeParcours" style="margin-top:8px"></p>
+</div>
+
 ${!fini ? `
 <div id="commandes" hidden>
   <div id="zoneAlerte"></div>
@@ -284,6 +296,11 @@ ${fini ? `
   const script = `
 const J=${JSON.stringify(jetonSuivi)};
 const FINI=${fini ? 'true' : 'false'};
+// Rendu côté serveur : le tracé s'affiche à l'ouverture, sans attendre
+// un aller-retour réseau — et il reste visible sur un trajet terminé,
+// où le rafraîchissement ne tourne plus.
+const PARCOURS=${JSON.stringify(d.parcours ?? [])};
+const DISTANCE=${JSON.stringify(d.distanceKm ?? 0)};
 const SOUS_ALERTE=${sousAlerte ? 'true' : 'false'};
 const s=localStorage.getItem('sp')||'';
 const $=(i)=>document.getElementById(i);
@@ -457,6 +474,65 @@ async function determinerRole(){
   else demarrerSuiviProche();
 }
 
+/**
+ * Trace le parcours en SVG, sans fond de carte ni service externe.
+ *
+ * Le choix est contraint : une carte à tuiles chargerait une
+ * bibliothèque et des dizaines d'images au moment où la page doit
+ * rester légère sur un réseau 2G. Le tracé ne donne pas les noms de
+ * rues, mais il montre la forme du trajet — assez pour reconnaître un
+ * itinéraire habituel, et surtout pour voir qu'il s'en écarte.
+ *
+ * Les coordonnées sont projetées en corrigeant la longitude par le
+ * cosinus de la latitude : sans cela, un trajet est-ouest paraîtrait
+ * plus long qu'il ne l'est.
+ */
+function tracerParcours(pts, distanceKm){
+  const bloc=$('blocParcours'); if(!bloc) return;
+  if(!pts||pts.length<2){bloc.hidden=true;return}
+  bloc.hidden=false;
+
+  const L=300,H=190,M=18;
+  const latM=pts.reduce((s,p)=>s+p.latitude,0)/pts.length;
+  const k=Math.cos(latM*Math.PI/180);
+  const xs=pts.map(p=>p.longitude*k), ys=pts.map(p=>p.latitude);
+  const x0=Math.min(...xs),x1=Math.max(...xs);
+  const y0=Math.min(...ys),y1=Math.max(...ys);
+
+  // Un trajet quasi immobile ne doit pas être étiré au point de
+  // ressembler à une grande course.
+  const ech=Math.max((x1-x0),(y1-y0))||1e-6;
+  const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  const proj=(p)=>[
+    L/2+((p.longitude*k-cx)/ech)*(L-2*M),
+    H/2-((p.latitude-cy)/ech)*(H-2*M)
+  ];
+
+  const d=pts.map((p,i)=>{const[x,y]=proj(p);
+    return (i?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}).join(' ');
+  const[xd,yd]=proj(pts[0]);
+  const[xf,yf]=proj(pts[pts.length-1]);
+  const enCours=!FINI;
+
+  $('trace').innerHTML=
+    '<path d="'+d+'" fill="none" stroke="#1F6B45" stroke-width="3" '+
+      'stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="'+xd.toFixed(1)+'" cy="'+yd.toFixed(1)+'" r="5" '+
+      'fill="#fff" stroke="#5E5C55" stroke-width="2"/>'+
+    '<circle cx="'+xf.toFixed(1)+'" cy="'+yf.toFixed(1)+'" r="6" fill="'+
+      (enCours?'#1F6B45':'#A8342A')+'"/>'+
+    (enCours?'<circle cx="'+xf.toFixed(1)+'" cy="'+yf.toFixed(1)+'" r="6" '+
+      'fill="none" stroke="#1F6B45" stroke-width="2" opacity=".45">'+
+      '<animate attributeName="r" values="6;13;6" dur="2s" '+
+      'repeatCount="indefinite"/><animate attributeName="opacity" '+
+      'values=".45;0;.45" dur="2s" repeatCount="indefinite"/></circle>':'');
+
+  $('distance').textContent=(distanceKm||0).toFixed(1).replace('.',',')+' km';
+  $('legendeParcours').textContent=enCours
+    ?'Départ en clair, position actuelle en vert.'
+    :'Départ en clair, arrivée en rouge.';
+}
+
 // Le proche voit la page se rafraîchir sans rien faire.
 function demarrerSuiviProche(){
   if(FINI)return;
@@ -468,6 +544,7 @@ function demarrerSuiviProche(){
       $('etat').textContent=d.etat==='alerte'?'⚠ Alerte en cours'
         :d.etat==='en_cours'?'En cours':'Trajet terminé';
       if(d.position)$('pos').textContent='à l\\'instant';
+      tracerParcours(d.parcours,d.distanceKm);
       // Le proche doit voir l'alerte sans avoir à recharger : c'est la
       // raison d'être du lien qu'il a reçu.
       if(d.etat==='alerte'&&!document.querySelector('.alerte-active')){
@@ -482,6 +559,7 @@ function demarrerSuiviProche(){
   },20000);
 }
 
+tracerParcours(PARCOURS,DISTANCE);
 determinerRole();`;
 
   return page('Trajet en cours', corps, script);
