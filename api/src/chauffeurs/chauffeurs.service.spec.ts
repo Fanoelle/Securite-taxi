@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException, BadRequestException, NotFoundException, ForbiddenException,
+} from '@nestjs/common';
 import { ChauffeursService } from './chauffeurs.service';
 import { BaseService } from '../base/base.service';
 
@@ -177,6 +179,52 @@ describe('ChauffeursService — validation de dossier', () => {
       monter({ dossier: { ...dossierExistant, region: 'CE', ville: 'Yaounde' } });
       const r = await service.validerDossier('ch-1', 'a-1', 'aut-1', { decision: 'verifie' });
       expect(r.referenceLicence).toBe('0007-YDE');
+    });
+  });
+
+  /**
+   * Un dossier validé engage l'autorité qui le prononce, et cette
+   * autorité est territoriale. La file doit donc être cloisonnée par la
+   * ville de l'agent — dérivée de son jeton, jamais d'un paramètre que
+   * le client contrôle.
+   */
+  describe('fileValidation — cloisonnement par ville', () => {
+    it('filtre sur l\'autorite du jeton, jamais sur un parametre client', async () => {
+      base.requete.mockResolvedValue([]);
+
+      await service.fileValidation({ role: 'agent', autoriteId: 'aut-yaounde' });
+
+      const [sql, params] = base.requete.mock.calls[0];
+      expect(sql).toContain('a.id = $1');
+      expect(params).toEqual(['aut-yaounde']);
+    });
+
+    it('ne rend jamais la file entiere a un agent', async () => {
+      base.requete.mockResolvedValue([]);
+
+      await service.fileValidation({ role: 'agent', autoriteId: 'aut-yaounde' });
+
+      // Sans clause de restriction, l'agent verrait les dossiers des
+      // autres villes — c'est precisement le defaut corrige ici.
+      const [sql] = base.requete.mock.calls[0];
+      expect(sql).toMatch(/WHERE/);
+    });
+
+    it('refuse un agent sans autorite de rattachement', async () => {
+      await expect(
+        service.fileValidation({ role: 'agent', autoriteId: null }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(base.requete).not.toHaveBeenCalled();
+    });
+
+    it('laisse le superadmin voir toutes les villes', async () => {
+      base.requete.mockResolvedValue([]);
+
+      await service.fileValidation({ role: 'superadmin', autoriteId: null });
+
+      const [sql, params] = base.requete.mock.calls[0];
+      expect(sql).not.toContain('a.id = $1');
+      expect(params).toBeUndefined();
     });
   });
 });

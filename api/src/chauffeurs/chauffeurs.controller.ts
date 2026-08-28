@@ -1,5 +1,5 @@
 import {
-  Controller, Post, Get, Body, Param, Query, HttpCode, Header,
+  Controller, Post, Get, Body, Param, HttpCode, Header,
   UseGuards, UseInterceptors, UploadedFile, Res,
   ForbiddenException, BadRequestException,
 } from '@nestjs/common';
@@ -68,14 +68,18 @@ export class ChauffeursController {
     return this.chauffeurs.inscrire(dto);
   }
 
+  /**
+   * La ville vient de l'autorité du jeton, jamais de l'URL : sinon un
+   * agent élargirait son périmètre en changeant un paramètre.
+   */
   @Get('file-validation')
   @UseGuards(JwtGarde, RolesGarde)
   @Roles('agent', 'superadmin')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Dossiers en attente de validation' })
-  @ApiResponse({ status: 403, description: 'Reserve aux agents' })
-  async file(@Query('villeId') villeId?: string) {
-    return this.chauffeurs.fileValidation(villeId);
+  @ApiOperation({ summary: 'Dossiers en attente de validation, de ma ville' })
+  @ApiResponse({ status: 403, description: 'Reserve aux agents rattaches a une autorite' })
+  async file(@CompteConnecte() agent: CompteAuthentifie) {
+    return this.chauffeurs.fileValidation(agent);
   }
 
   /**

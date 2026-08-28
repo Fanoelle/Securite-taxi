@@ -1,6 +1,6 @@
 import {
   Injectable, BadRequestException, NotFoundException,
-  ConflictException, Logger,
+  ConflictException, ForbiddenException, Logger,
 } from '@nestjs/common';
 import { BaseService } from '../base/base.service';
 import {
@@ -276,10 +276,37 @@ export class ChauffeursService {
   }
 
   /** File d'attente de validation, filtrée par ville si demandé. */
-  async fileValidation(villeId?: string) {
-    const sql = villeId
-      ? 'SELECT * FROM v_file_validation WHERE ville_id = $1 ORDER BY depose_le ASC'
-      : 'SELECT * FROM v_file_validation ORDER BY depose_le ASC';
-    return this.base.requete(sql, villeId ? [villeId] : []);
+  /**
+   * File des dossiers à examiner, cloisonnée par ville.
+   *
+   * La ville est dérivée de l'autorité portée par le jeton, jamais d'un
+   * paramètre fourni par le client : un agent ne doit pas pouvoir élargir
+   * son périmètre en changeant une adresse. Un dossier validé engage
+   * l'autorité qui le prononce, et cette autorité est territoriale.
+   *
+   * Le superadmin n'est rattaché à aucune autorité et voit tout : c'est
+   * le seul cas où l'absence de cloisonnement est voulue.
+   */
+  async fileValidation(agent: { role: string; autoriteId: string | null }) {
+    if (agent.role === 'superadmin') {
+      return this.base.requete(
+        'SELECT * FROM v_file_validation ORDER BY depose_le ASC',
+      );
+    }
+
+    if (!agent.autoriteId) {
+      throw new ForbiddenException(
+        'Votre compte n\'est rattaché à aucune autorité. ' +
+        'La file de validation est cloisonnée par ville.',
+      );
+    }
+
+    return this.base.requete(
+      `SELECT f.* FROM v_file_validation f
+         JOIN autorite a ON a.ville_id = f.ville_id
+        WHERE a.id = $1
+        ORDER BY f.depose_le ASC`,
+      [agent.autoriteId],
+    );
   }
 }

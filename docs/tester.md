@@ -32,7 +32,7 @@ coûtent rien.
 npm test
 ```
 
-161 tests, une dizaine de secondes. C'est ce qu'il faut lancer après
+168 tests, une dizaine de secondes. C'est ce qu'il faut lancer après
 toute modification. Aucune base n'est requise : les accès sont simulés.
 
 ```bash
@@ -185,10 +185,17 @@ Les invariants qui portent la crédibilité du produit :
 4. **Le double appui sur l'alerte ne crée pas de doublon.** Quelqu'un qui
    panique appuie plusieurs fois.
 5. **Une session ne pilote pas le trajet d'une autre.**
-6. **Un agent ne voit que sa ville.** — ⚠️ **non tenu aujourd'hui** :
-   la file de validation filtre sur un paramètre d'URL fourni par le
-   client, pas sur l'autorité du jeton. Voir « Limites connues » dans le
-   [README](../README.md).
+6. **Un agent ne voit que sa ville.** La file de validation filtre sur
+   l'autorité portée par le jeton, jamais sur un paramètre d'URL. Le
+   superadmin, rattaché à aucune autorité, voit tout — c'est le seul cas
+   où l'absence de cloisonnement est voulue.
+
+   ```bash
+   # Un agent de Yaoundé ne doit voir aucun dossier de Douala,
+   # et le paramètre villeId doit rester sans effet.
+   curl -s "localhost:3000/api/chauffeurs/file-validation?villeId=peu-importe" \
+     -H "Authorization: Bearer $JETON"
+   ```
 
 La démonstration vérifie les cinq premiers.
 
