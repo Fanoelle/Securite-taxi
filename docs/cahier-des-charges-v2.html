@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<title>Cahier des charges — Sécurité Taxi Cameroun</title>
+<style>
+@page{size:A4;margin:17mm 16mm 15mm}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--vert:#0E3B2E;--vert-cl:#1F6B45;--rouge:#A8342A;--ocre:#9A6B1F;
+--encre:#1A1A18;--gris:#5E5C55;--trait:#DCD7CC;--fond:#F7F5EF}
+body{font:10.5pt/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;color:var(--encre)}
+h1{font-size:19pt;color:var(--vert);margin:0 0 3mm;line-height:1.2}
+h2{font-size:13pt;color:var(--vert);margin:7mm 0 2.5mm;padding-bottom:1.5mm;
+border-bottom:1.5pt solid var(--vert);break-after:avoid}
+h3{font-size:11pt;color:var(--vert-cl);margin:5mm 0 1.5mm;break-after:avoid}
+p{margin:0 0 2.2mm;text-align:justify}
+ul,ol{margin:0 0 2.5mm 5mm}li{margin-bottom:1mm}
+b,strong{color:var(--vert)}
+table{width:100%;border-collapse:collapse;margin:2.5mm 0 3.5mm;font-size:9pt}
+tr{break-inside:avoid}
+thead{display:table-header-group}
+th{background:var(--vert);color:#fff;text-align:left;padding:1.8mm 2mm;font-weight:600}
+td{border-bottom:0.5pt solid var(--trait);padding:1.6mm 2mm;vertical-align:top}
+tr:nth-child(even) td{background:var(--fond)}
+.enc{background:var(--fond);border-left:2.5pt solid var(--vert-cl);
+padding:2.5mm 3mm;margin:3mm 0}
+figure,.deux{break-inside:avoid}
+.enc.att{border-left-color:var(--ocre)}
+.enc .t{font-weight:700;color:var(--vert);display:block;margin-bottom:1.2mm;
+font-size:10pt;letter-spacing:.2pt}
+.enc.att .t{color:var(--ocre)}
+figure{margin:4mm 0;break-inside:avoid;text-align:center}
+figcaption{font-size:8.5pt;color:var(--gris);margin-top:1.5mm;font-style:italic}
+svg{max-width:100%;height:auto}
+.garde{text-align:center;padding-top:55mm;break-after:page}
+.garde h1{font-size:26pt;margin-bottom:4mm}
+.garde .st{font-size:12pt;color:var(--gris);margin-bottom:22mm}
+.garde .meta{font-size:10pt;color:var(--gris);line-height:2}
+.som{break-after:page}
+.som ol{list-style:none;margin-left:0;font-size:10.5pt}
+.som li{padding:1.4mm 0;border-bottom:0.5pt dotted var(--trait)}
+.som .n{display:inline-block;width:9mm;color:var(--vert-cl);font-weight:600}
+.pied{margin-top:6mm;padding-top:2mm;border-top:0.5pt solid var(--trait);
+font-size:8.5pt;color:var(--gris);text-align:center}
+code{font-family:ui-monospace,"DejaVu Sans Mono",monospace;font-size:9pt;
+background:var(--fond);padding:0.3mm 1mm;border-radius:1mm}
+.deux{display:flex;gap:4mm}.deux>div{flex:1}
+</style></head><body>
+
+<div class="garde">
+  <h1>Sécurité Taxi Cameroun</h1>
+  <div class="st">Plateforme de sécurité des transports en commun</div>
+  <div style="font-size:15pt;color:var(--vert);font-weight:600;margin-bottom:20mm">
+    Cahier des charges</div>
+  <div class="meta">
+    Version 2 — 1<sup>er</sup> septembre 2026<br>
+    Yaoundé · Douala, Cameroun
+  </div>
+</div>
+
+<div class="som">
+<h2>Sommaire</h2>
+<ol>
+<li><span class="n">1.</span> Contexte</li>
+<li><span class="n">2.</span> Problème et problématique</li>
+<li><span class="n">3.</span> Étude de l'existant</li>
+<li><span class="n">4.</span> Périmètre du travail</li>
+<li><span class="n">5.</span> Acteurs et rôles</li>
+<li><span class="n">6.</span> Fonctionnalités</li>
+<li><span class="n">7.</span> Choix technologiques</li>
+<li><span class="n">8.</span> Ce qui garantit le produit</li>
+<li><span class="n">9.</span> État d'avancement</li>
+</ol>
+</div>
+
+<h2>1. Contexte</h2>
+
+<p>Le taxi collectif est le mode de déplacement dominant à Yaoundé et à
+Douala. On y monte à plusieurs, avec des inconnus, souvent la nuit, dans
+un véhicule dont rien n'indique qui le conduit ni s'il en a le droit.</p>
+
+<p>Jusqu'en 2026, aucun registre consultable ne permettait de le savoir.
+Ni le passager, ni sa famille ne disposaient du moindre moyen de
+vérification. En cas d'incident, il ne restait qu'un souvenir approximatif
+de la couleur du véhicule.</p>
+
+<h3>1.1 La réforme en cours</h3>
+
+<p>Par arrêté du <b>25 juin 2026</b>, le maire de Yaoundé a institué
+l'enregistrement numérique obligatoire des propriétaires et conducteurs
+de taxis, adossé à la plateforme <b>Taxi-Yaoundé.com</b> développée par la
+Communauté urbaine de Yaoundé (CUY) avec l'appui de la coopération
+allemande (GIZ).</p>
+
+<table>
+<tr><th style="width:32%">Élément</th><th>Description</th></tr>
+<tr><td>Autorité · appui</td><td>Communauté urbaine de Yaoundé · GIZ</td></tr>
+<tr><td>Identifiant conducteur</td><td>Code QR personnel</td></tr>
+<tr><td>Identifiant véhicule</td><td>Numéro de portière unique</td></tr>
+<tr><td>Période d'enregistrement</td><td>3 juillet au 5 octobre 2026</td></tr>
+<tr><td>Sanction</td><td>Mise en fourrière des taxis non enregistrés au-delà</td></tr>
+</table>
+
+<p>Ce contexte est déterminant : la présente plateforme <b>ne crée pas un
+registre concurrent</b>. Elle se greffe sur celui qui devient obligatoire.</p>
+
+<h2>2. Problème et problématique</h2>
+
+<h3>2.1 Le problème</h3>
+
+<p>Un passager qui s'apprête à monter dans un taxi ne peut vérifier ni
+l'identité du conducteur, ni la validité de ses papiers, ni son
+rattachement à une autorité. Il décide en quelques secondes, sur la seule
+apparence du véhicule.</p>
+
+<p>Trois manques concrets en découlent :</p>
+
+<ul>
+<li><b>Avant de monter</b> — aucune information sur qui conduit.</li>
+<li><b>Pendant le trajet</b> — personne ne sait où se trouve le passager.</li>
+<li><b>En cas d'incident</b> — aucun moyen d'alerter vite, ni de dire
+    dans quel véhicule on se trouve.</li>
+</ul>
+
+<div class="enc">
+<span class="t">Problématique</span>
+Comment permettre à un passager, seul devant un taxi, la nuit, avec un
+téléphone d'entrée de gamme et une connexion incertaine, de vérifier en
+quelques secondes ce que l'administration sait déjà du conducteur — puis
+de faire de son trajet un événement qu'un proche peut suivre et qu'une
+autorité peut recevoir en urgence ?
+</div>
+
+<p>Cette formulation contient ses propres contraintes, et elles gouvernent
+tout le reste du document :</p>
+
+<table>
+<tr><th style="width:34%">Contrainte</th><th>Conséquence de conception</th></tr>
+<tr><td><b>Quelques secondes</b></td><td>Aucune inscription, aucune
+installation d'application pour le passager</td></tr>
+<tr><td><b>Téléphone d'entrée de gamme</b></td><td>Pages HTML légères,
+pas de framework lourd côté navigateur</td></tr>
+<tr><td><b>Connexion incertaine</b></td><td>Pages autonomes, servies par
+l'API elle-même</td></tr>
+<tr><td><b>Ce que l'administration sait</b></td><td>Appairage au registre
+officiel, jamais une seconde vérité</td></tr>
+</table>
+
+<h2>3. Étude de l'existant</h2>
+
+<h3>3.1 Ce qui existe aujourd'hui</h3>
+
+<table>
+<tr><th style="width:23%">Dispositif</th><th style="width:38%">Ce qu'il fait</th>
+<th>Ce qu'il ne fait pas</th></tr>
+<tr><td><b>Taxi-Yaoundé.com</b><br>CUY · GIZ, 2026</td>
+<td>Registre officiel : enregistre conducteurs et véhicules, délivre un QR
+et un numéro de portière</td>
+<td>Ne suit aucun trajet, ne reçoit aucune alerte, n'informe pas le proche</td></tr>
+<tr><td><b>Moto Afrique</b><br>CUD Douala, 2024</td>
+<td>Identification numérique des moto-taxis</td>
+<td>Ne couvre pas les taxis quatre roues</td></tr>
+<tr><td><b>VTC</b><br>Yango, Bolt</td>
+<td>Trajet tracé, chauffeur identifié, paiement</td>
+<td>Réservé à la course réservée en ligne ; ne couvre pas le taxi collectif
+hélé dans la rue, qui est l'usage majoritaire</td></tr>
+<tr><td><b>Appel d'urgence</b><br>117, 118</td>
+<td>Joindre les secours</td>
+<td>Suppose de pouvoir parler, et de savoir où l'on est</td></tr>
+</table>
+
+<h3>3.2 Le vide que personne ne couvre</h3>
+
+<figure>
+<svg viewBox="0 0 500 168" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Le registre couvre l'administratif, les VTC la course réservée ; le taxi hélé dans la rue reste découvert">
+<defs><style>
+.b{fill:#F7F5EF;stroke:#DCD7CC;stroke-width:1}
+.g{fill:#0E3B2E}.t{font:9px "Segoe UI",sans-serif;fill:#1A1A18}
+.tt{font:bold 9.5px "Segoe UI",sans-serif;fill:#0E3B2E}
+.m{font:8px "Segoe UI",sans-serif;fill:#5E5C55}
+</style></defs>
+<text x="8" y="13" class="tt">Avant de monter</text>
+<text x="182" y="13" class="tt">Pendant le trajet</text>
+<text x="356" y="13" class="tt">En cas d'incident</text>
+
+<rect x="8" y="22" width="160" height="30" rx="4" class="b"/>
+<text x="16" y="34" class="t">Registre officiel CUY</text>
+<text x="16" y="46" class="m">le conducteur est enregistré</text>
+
+<rect x="182" y="22" width="160" height="30" rx="4" class="b"/>
+<text x="190" y="34" class="t">VTC — Yango, Bolt</text>
+<text x="190" y="46" class="m">seulement si course réservée</text>
+
+<rect x="356" y="22" width="136" height="30" rx="4" class="b"/>
+<text x="364" y="34" class="t">Appels 117 / 118</text>
+<text x="364" y="46" class="m">s'il peut parler</text>
+
+<rect x="8" y="66" width="484" height="34" rx="4" fill="#FBEEE9" stroke="#A8342A"
+      stroke-width="1" stroke-dasharray="4 2.5"/>
+<text x="16" y="80" style="font:bold 9.5px 'Segoe UI',sans-serif;fill:#A8342A">
+  Le taxi collectif hélé dans la rue — l'usage majoritaire</text>
+<text x="16" y="93" class="m">Le passager n'a rien vérifié, personne ne sait où il est, et il ne peut pas toujours parler.</text>
+
+<rect x="8" y="114" width="484" height="40" rx="4" fill="#EAF3EE" stroke="#1F6B45" stroke-width="1.2"/>
+<text x="16" y="129" style="font:bold 9.5px 'Segoe UI',sans-serif;fill:#0E3B2E">
+  Sécurité Taxi — ce que la plateforme ajoute</text>
+<text x="16" y="142" class="m">Scanner le QR pour vérifier · partager le trajet à un proche · alerter d'un seul appui, avec la position</text>
+</svg>
+<figcaption>Figure 1 — Chaque dispositif existant couvre un moment ; aucun ne
+couvre le taxi hélé dans la rue.</figcaption>
+</figure>
+
+<h3>3.3 Positionnement retenu</h3>
+
+<table>
+<tr><th style="width:22%"> </th><th>Registre officiel (CUY)</th><th>Cette plateforme</th></tr>
+<tr><td><b>Rôle</b></td><td>Établit qui a le droit d'exercer</td>
+<td>Sert le passager : vérifier, suivre, alerter</td></tr>
+<tr><td><b>Détient</b></td><td>La vérité administrative</td>
+<td>Une copie vérifiée, plus le vécu de la course</td></tr>
+<tr><td><b>Temporalité</b></td><td>Administrative</td>
+<td>Temps réel — les secondes avant de monter</td></tr>
+</table>
+
+<div class="enc att">
+<span class="t">Règle structurante</span>
+En cas de divergence, <b>le registre officiel fait foi</b>. Cette plateforme
+ne délivre aucune autorisation d'exercer. Un chauffeur déjà enregistré à la
+CUY ne recommence pas son inscription : il s'appaire. Redemander deux fois
+les mêmes pièces, c'est garantir qu'aucune des deux démarches ne sera menée
+correctement.
+</div>
+
+<h2>4. Périmètre du travail</h2>
+
+<div class="deux">
+<div>
+<h3>4.1 Dans le périmètre</h3>
+<ul>
+<li>Vérification d'un chauffeur par code QR</li>
+<li>Appairage au registre officiel de la CUY</li>
+<li>Inscription et validation locales (repli)</li>
+<li>Examen des pièces par un agent communal</li>
+<li>Suivi de trajet et partage à un proche</li>
+<li>Alerte d'urgence géolocalisée</li>
+<li>Signalement d'incident et suspension</li>
+<li>Mise en relation par call center</li>
+</ul>
+</div>
+<div>
+<h3>4.2 Hors périmètre</h3>
+<ul>
+<li>Le paiement de la course</li>
+<li>La réservation et la mise en relation commerciale</li>
+<li>La délivrance de l'autorisation d'exercer</li>
+<li>La gestion de flotte pour les propriétaires</li>
+<li>L'application mobile native</li>
+<li>L'intervention physique des secours</li>
+</ul>
+</div>
+</div>
+
+<div class="enc">
+<span class="t">Couverture géographique</span>
+Yaoundé et Douala en première phase — les deux villes où la réforme est
+engagée. Le modèle de données porte déjà <code>région → ville → autorité</code>,
+de sorte qu'étendre à une autre commune ne demande aucune modification du code.
+</div>
+
+<h2>5. Acteurs et rôles</h2>
+
+<figure>
+<svg viewBox="0 0 500 210" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Les quatre acteurs et leurs échanges avec la plateforme">
+<defs>
+<marker id="fl" markerWidth="7" markerHeight="7" refX="6" refY="2.5" orient="auto">
+  <path d="M0,0 L6,2.5 L0,5 z" fill="#5E5C55"/></marker>
+<style>
+.bx{fill:#fff;stroke:#0E3B2E;stroke-width:1.2}
+.pl{fill:#EAF3EE;stroke:#1F6B45;stroke-width:1.5}
+.nm{font:bold 9.5px "Segoe UI",sans-serif;fill:#0E3B2E}
+.rl{font:8px "Segoe UI",sans-serif;fill:#5E5C55}
+.lb{font:7.5px "Segoe UI",sans-serif;fill:#5E5C55}
+.ln{stroke:#5E5C55;stroke-width:0.9;marker-end:url(#fl)}
+</style></defs>
+
+<rect x="188" y="82" width="124" height="46" rx="5" class="pl"/>
+<text x="250" y="100" class="nm" text-anchor="middle">Sécurité Taxi</text>
+<text x="250" y="113" class="rl" text-anchor="middle">API · pages · base</text>
+<text x="250" y="123" class="rl" text-anchor="middle">de données</text>
+
+<rect x="14" y="14" width="120" height="40" rx="5" class="bx"/>
+<text x="74" y="30" class="nm" text-anchor="middle">Passager</text>
+<text x="74" y="43" class="rl" text-anchor="middle">aucun compte</text>
+
+<rect x="366" y="14" width="120" height="40" rx="5" class="bx"/>
+<text x="426" y="30" class="nm" text-anchor="middle">Chauffeur</text>
+<text x="426" y="43" class="rl" text-anchor="middle">compte + dossier</text>
+
+<rect x="14" y="156" width="120" height="40" rx="5" class="bx"/>
+<text x="74" y="172" class="nm" text-anchor="middle">Proche</text>
+<text x="74" y="185" class="rl" text-anchor="middle">un lien reçu</text>
+
+<rect x="366" y="156" width="120" height="40" rx="5" class="bx"/>
+<text x="426" y="172" class="nm" text-anchor="middle">Agent communal</text>
+<text x="426" y="185" class="rl" text-anchor="middle">autorité validante</text>
+
+<path d="M134,40 L186,88" class="ln"/>
+<text x="140" y="72" class="lb">scanne, suit, alerte</text>
+
+<path d="M366,42 L314,86" class="ln"/>
+<text x="318" y="66" class="lb">dépose ses pièces</text>
+
+<path d="M232,130 L134,162" class="ln"/>
+<text x="140" y="146" class="lb">SMS : lien de suivi, alerte</text>
+
+<path d="M366,168 L314,128" class="ln"/>
+<text x="316" y="152" class="lb">examine, valide, suspend</text>
+</svg>
+<figcaption>Figure 2 — Quatre acteurs. Un seul, l'agent, décide ; le passager
+n'a pas de compte du tout.</figcaption>
+</figure>
+
+<table>
+<tr><th style="width:17%">Acteur</th><th style="width:17%">Identification</th>
+<th>Ce qu'il peut faire</th></tr>
+<tr><td><b>Passager</b></td><td>Aucun compte.<br>Jeton de session anonyme</td>
+<td>Scanner un QR et lire la fiche du chauffeur · démarrer un trajet ·
+partager le suivi à un proche · déclencher une alerte · signaler un incident ·
+déclarer un objet oublié</td></tr>
+<tr><td><b>Proche</b></td><td>Aucun compte.<br>Un lien reçu par SMS</td>
+<td>Voir le trajet en direct et l'itinéraire parcouru · recevoir l'alerte</td></tr>
+<tr><td><b>Chauffeur</b></td><td>Compte, connexion par code SMS</td>
+<td>S'inscrire ou s'appairer au registre · déposer ses pièces · consulter
+son dossier et son QR · répondre à une déclaration d'objet oublié</td></tr>
+<tr><td><b>Agent communal</b></td><td>Compte + mot de passe,<br>rattaché à une autorité</td>
+<td>Voir la file des dossiers <b>de sa commune uniquement</b> · examiner
+chaque pièce · valider — ce qui produit le QR — ou rejeter avec motif ·
+traiter un signalement et suspendre</td></tr>
+<tr><td><b>Superadmin</b></td><td>Compte + mot de passe</td>
+<td>Créer les comptes agents et les rattacher à une autorité</td></tr>
+</table>
+
+<div class="enc">
+<span class="t">Pourquoi le passager n'a pas de compte</span>
+Toute friction au moment de monter fait abandonner. Quelqu'un qui hésite
+devant un taxi la nuit n'ouvre pas un magasin d'applications et ne crée pas
+de mot de passe. Son identité tient dans un jeton anonyme que son navigateur
+garde : il relie un trajet à ses contacts, et n'authentifie rien.
+</div>
+
+<h2>6. Fonctionnalités</h2>
+
+<h3>6.1 Vue d'ensemble du parcours</h3>
+
+<figure>
+<svg viewBox="0 0 500 132" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Du dépôt des pièces par le chauffeur jusqu'à l'alerte du passager">
+<defs>
+<marker id="f2" markerWidth="7" markerHeight="7" refX="6" refY="2.5" orient="auto">
+  <path d="M0,0 L6,2.5 L0,5 z" fill="#1F6B45"/></marker>
+<style>
+.s{fill:#fff;stroke:#1F6B45;stroke-width:1.1}
+.sn{font:bold 8.5px "Segoe UI",sans-serif;fill:#0E3B2E}
+.sd{font:7.5px "Segoe UI",sans-serif;fill:#5E5C55}
+.ar{stroke:#1F6B45;stroke-width:1.1;marker-end:url(#f2);fill:none}
+.ph{font:bold 8px "Segoe UI",sans-serif;fill:#9A6B1F}
+</style></defs>
+
+<text x="8" y="12" class="ph">EN AMONT — le chauffeur et l'agent</text>
+<rect x="8" y="18" width="104" height="34" rx="4" class="s"/>
+<text x="60" y="32" class="sn" text-anchor="middle">Dépôt des pièces</text>
+<text x="60" y="44" class="sd" text-anchor="middle">CNI, permis, carte grise</text>
+
+<rect x="132" y="18" width="104" height="34" rx="4" class="s"/>
+<text x="184" y="32" class="sn" text-anchor="middle">Examen par l'agent</text>
+<text x="184" y="44" class="sd" text-anchor="middle">pièce par pièce</text>
+
+<rect x="256" y="18" width="104" height="34" rx="4" class="s"/>
+<text x="308" y="32" class="sn" text-anchor="middle">Validation</text>
+<text x="308" y="44" class="sd" text-anchor="middle">→ produit le QR</text>
+
+<rect x="380" y="18" width="112" height="34" rx="4" class="s"/>
+<text x="436" y="32" class="sn" text-anchor="middle">QR collé au taxi</text>
+<text x="436" y="44" class="sd" text-anchor="middle">visible du passager</text>
+
+<path d="M112,35 L130,35" class="ar"/>
+<path d="M236,35 L254,35" class="ar"/>
+<path d="M360,35 L378,35" class="ar"/>
+
+<text x="8" y="76" class="ph">EN COURSE — le passager</text>
+<rect x="8" y="82" width="104" height="34" rx="4" class="s"/>
+<text x="60" y="96" class="sn" text-anchor="middle">Scan</text>
+<text x="60" y="108" class="sd" text-anchor="middle">qui conduit ? papiers ?</text>
+
+<rect x="132" y="82" width="104" height="34" rx="4" class="s"/>
+<text x="184" y="96" class="sn" text-anchor="middle">Trajet démarré</text>
+<text x="184" y="108" class="sd" text-anchor="middle">position en direct</text>
+
+<rect x="256" y="82" width="104" height="34" rx="4" class="s"/>
+<text x="308" y="96" class="sn" text-anchor="middle">Partage à un proche</text>
+<text x="308" y="108" class="sd" text-anchor="middle">un lien par SMS</text>
+
+<rect x="380" y="82" width="112" height="34" rx="4" fill="#FBEEE9" stroke="#A8342A" stroke-width="1.2"/>
+<text x="436" y="96" style="font:bold 8.5px 'Segoe UI',sans-serif;fill:#A8342A" text-anchor="middle">Alerte</text>
+<text x="436" y="108" class="sd" text-anchor="middle">proches + autorité</text>
+
+<path d="M112,99 L130,99" class="ar"/>
+<path d="M236,99 L254,99" class="ar"/>
+<path d="M360,99 L378,99" class="ar"/>
+<path d="M436,52 L436,80" class="ar"/>
+</svg>
+<figcaption>Figure 3 — Le QR n'existe qu'au bout de la chaîne de validation.
+C'est ce qui lui donne sa valeur.</figcaption>
+</figure>
+
+<h3>6.2 Exigences fonctionnelles</h3>
+
+<table>
+<tr><th style="width:9%">Réf.</th><th style="width:26%">Fonctionnalité</th>
+<th>Description</th></tr>
+<tr><td><b>F-01</b></td><td>Vérification par QR</td>
+<td>Le scan affiche nom, photo, plaque, statut, autorité validante et
+référence de licence. Un code inconnu ou révoqué affiche « code non reconnu ».</td></tr>
+<tr><td><b>F-02</b></td><td>Appairage au registre</td>
+<td>Un chauffeur déjà enregistré à la CUY est reconnu et n'a pas à
+redéposer ses pièces.</td></tr>
+<tr><td><b>F-03</b></td><td>Inscription locale</td>
+<td>Chemin de repli : inscription, dépôt des quatre pièces requises,
+validation par l'agent de la commune.</td></tr>
+<tr><td><b>F-04</b></td><td>Examen des pièces</td>
+<td>L'agent ouvre chaque pièce et rend un verdict motivé. Un rejet exige
+un motif, que le chauffeur reçoit.</td></tr>
+<tr><td><b>F-05</b></td><td>Suivi de trajet</td>
+<td>Position en direct et itinéraire parcouru, consultables sans compte
+par toute personne détenant le lien.</td></tr>
+<tr><td><b>F-06</b></td><td>Partage à un proche</td>
+<td>Envoi d'un lien de suivi par SMS aux contacts choisis.</td></tr>
+<tr><td><b>F-07</b></td><td>Alerte d'urgence</td>
+<td>Un seul appui. Prévient les proches partagés et l'autorité de la ville,
+avec la dernière position connue.</td></tr>
+<tr><td><b>F-08</b></td><td>Signalement et suspension</td>
+<td>Un passager signale un incident ; l'autorité peut suspendre le
+chauffeur, ce qui révoque son QR immédiatement.</td></tr>
+<tr><td><b>F-09</b></td><td>Objet oublié</td>
+<td>Mise en relation par le call center sur référence de dossier — le
+numéro du chauffeur n'est jamais communiqué.</td></tr>
+</table>
+
+<h2>7. Choix technologiques</h2>
+
+<table>
+<tr><th style="width:24%">Choix</th><th>Pourquoi</th></tr>
+
+<tr><td><b>Le web, pas une application mobile</b><br>
+<span style="color:var(--gris);font-size:8.5pt">Pages HTML servies directement</span></td>
+<td>C'est la décision la plus structurante. Demander une installation au
+moment où quelqu'un hésite devant un taxi, c'est perdre l'usage. Le
+passager scanne et lit — rien à installer, rien à créer. Cela impose aussi
+des pages légères, compatibles avec les téléphones d'entrée de gamme
+majoritaires.</td></tr>
+
+<tr><td><b>PostgreSQL</b><br>
+<span style="color:var(--gris);font-size:8.5pt">SQL écrit à la main, sans ORM</span></td>
+<td>Les règles vitales sont écrites dans la base, en contraintes et
+transactions : un QR actif exige un chauffeur validé, une suspension révoque
+le QR dans la même transaction. Un bug applicatif ne peut donc pas produire
+un chauffeur « vérifié » qui ne l'est pas. Un ORM aurait déplacé ces règles
+dans du code contournable.</td></tr>
+
+<tr><td><b>NestJS + TypeScript</b><br>
+<span style="color:var(--gris);font-size:8.5pt">Node.js 22</span></td>
+<td>Structure modulaire explicite — un module par domaine métier — et
+typage vérifié à la compilation. Un même langage côté serveur et côté
+navigateur réduit le coût de maintenance pour une petite équipe.</td></tr>
+
+<tr><td><b>Authentification différenciée</b><br>
+<span style="color:var(--gris);font-size:8.5pt">JWT · OTP · session anonyme</span></td>
+<td>Trois besoins distincts, trois mécanismes. L'agent a un mot de passe
+(bcrypt, coût 12). Le chauffeur reçoit un code par SMS — il n'a pas
+d'adresse e-mail fiable et retiendrait mal un mot de passe. Le passager a
+un jeton anonyme qui n'authentifie rien.</td></tr>
+
+<tr><td><b>SMS plutôt que notifications</b></td>
+<td>Le SMS fonctionne sur tous les téléphones, sans donnée mobile et sans
+application. C'est le seul canal qui atteint réellement un proche au
+Cameroun. Chaque envoi est tracé en base avant d'être émis.</td></tr>
+
+<tr><td><b>Pièces jamais servies statiquement</b></td>
+<td>Chaque pièce d'identité reçoit un nom aléatoire, sa signature binaire
+est vérifiée à l'écriture, et toute consultation passe par une requête
+authentifiée qui laisse une trace — exigence de la loi n° 2024/017 sur la
+protection des données personnelles.</td></tr>
+
+<tr><td><b>Le français partout</b><br>
+<span style="color:var(--gris);font-size:8.5pt">Code, base, messages</span></td>
+<td>Le domaine est camerounais et les agents qui lisent les messages
+d'erreur sont francophones. Traduire dans les deux sens introduit des
+contresens.</td></tr>
+</table>
+
+<h2>8. Ce qui garantit le produit</h2>
+
+<p>Six règles que le système ne doit jamais enfreindre. Chacune répond à une
+manière dont la plateforme pourrait <b>mentir</b> à quelqu'un qui lui fait
+confiance. Elles sont vérifiées par des tests automatiques.</p>
+
+<table>
+<tr><th style="width:6%">N°</th><th style="width:34%">Règle</th><th>Ce qu'elle empêche</th></tr>
+<tr><td>1</td><td>Aucun QR avant validation</td>
+<td>Un chauffeur inscrit mais non contrôlé ne peut pas paraître vérifié</td></tr>
+<tr><td>2</td><td>Aucune validation sans pièces examinées</td>
+<td>La référence de licence que lit le passager ne peut exister sans qu'un
+agent ait vu les quatre pièces et les ait jugées lisibles</td></tr>
+<tr><td>3</td><td>Un suspendu cesse d'être vérifié</td>
+<td>La suspension révoque le QR dans la même transaction : le scan échoue
+aussitôt</td></tr>
+<tr><td>4</td><td>Le double appui ne crée pas de doublon</td>
+<td>Quelqu'un qui panique appuie plusieurs fois — l'alerte existante est
+renvoyée, les secours ne reçoivent pas dix signalements</td></tr>
+<tr><td>5</td><td>Une session ne pilote pas le trajet d'une autre</td>
+<td>Le jeton anonyme cloisonne, même s'il n'authentifie pas</td></tr>
+<tr><td>6</td><td>Un agent ne voit que sa ville</td>
+<td>La file est filtrée sur l'autorité portée par le jeton, jamais sur un
+paramètre d'URL modifiable</td></tr>
+</table>
+
+<h2>9. État d'avancement</h2>
+
+<table>
+<tr><th style="width:36%">Élément</th><th>État au 1<sup>er</sup> septembre 2026</th></tr>
+<tr><td>API et règles métier</td><td>8 400 lignes de TypeScript, 57 fichiers</td></tr>
+<tr><td>Base de données</td><td>19 tables, contraintes et journal d'audit</td></tr>
+<tr><td>Tests automatiques</td><td>172 tests, 9 suites — passent en 10 secondes</td></tr>
+<tr><td>Écran passager</td><td>Opérationnel — scan, trajet, partage, alerte, objet oublié</td></tr>
+<tr><td>Écran chauffeur</td><td>Opérationnel — inscription, dossier, pièces, QR</td></tr>
+<tr><td>Écran agent</td><td>Opérationnel — file, examen, validation, suspension</td></tr>
+<tr><td>Écran superadmin</td><td>Non réalisé — passe par la documentation interactive</td></tr>
+</table>
+
+<h3>9.1 Ce qui reste à obtenir</h3>
+
+<ul>
+<li><b>De la Communauté urbaine de Yaoundé</b> — les modalités techniques
+d'appairage au registre officiel. C'est la dépendance principale : sans
+elle, seul le chemin de repli fonctionne.</li>
+<li><b>De l'ART</b> — la déclaration de l'identifiant d'expéditeur SMS,
+obligatoire avant tout envoi réel en production.</li>
+</ul>
+
+<div class="pied">
+Sécurité Taxi Cameroun · Cahier des charges · Version 2 — 1<sup>er</sup> septembre 2026<br>
+Sources : Digital Business Africa · Agence Ecofin · We Are Tech Africa ·
+allAfrica · News du Cameroun
+</div>
+
+</body></html>
