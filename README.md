@@ -75,6 +75,27 @@ npm run dev                # 1. API + pages, port 3000 — laisser tourner
 npm run jeu-de-donnees     # 2. dans un autre terminal : données de test
 ```
 
+**Un seul serveur sert tout.** Il n'y a rien d'autre à lancer : pas de
+serveur de façade, pas d'étape de compilation. Les pages sont produites
+par l'API elle-même, et chaque interface n'est qu'une adresse à ouvrir
+dans le navigateur.
+
+| Interface | Adresse | Entrer avec |
+|---|---|---|
+| **Passager** — scan | `http://localhost:3000/s/4NRZ7KT` | rien, remplacer par votre code |
+| **Passager** — accueil | `http://localhost:3000/` | rien, saisie manuelle du code |
+| **Chauffeur** — connexion | `http://localhost:3000/chauffeur/connexion` | `699452108` + code SMS |
+| **Chauffeur** — inscription | `http://localhost:3000/chauffeur/inscription` | un numéro non utilisé |
+| **Agent** — connexion | `http://localhost:3000/agent/connexion` | `699000002` / `DeveloppementSecuriTaxi2026` |
+| **Superadmin** | `http://localhost:3000/api/docs` | Swagger — pas d'écran dédié |
+
+Les adresses `/t/:jeton` (suivi du trajet), `/chauffeur` (le dossier) et
+`/agent` (la file) ne s'ouvrent pas à la main : on y arrive depuis les
+pages ci-dessus, une fois le trajet démarré ou la connexion établie.
+
+Chaque interface est détaillée plus bas — comptes de test, codes SMS,
+états de dossier à observer.
+
 Le second script affiche les comptes créés et **le code QR à utiliser** :
 
 ```
@@ -376,12 +397,27 @@ Pour effacer : `npm run jeu-de-donnees -- --vider`.
 
 ### 4. À la main
 
-- **Les pages** : `/s/CODE`, `/t/JETON`, `/chauffeur`
+- **Les pages** : `/s/CODE`, `/chauffeur/connexion`, `/agent/connexion`
 - **Swagger** : <http://localhost:3000/api/docs>
 - **Le banc d'essai** : `test-visuel/`, qui montre chaque appel HTTP
 - **Les SMS** : `SELECT categorie, telephone, contenu FROM sms_sortant
   ORDER BY cree_le DESC;` — c'est aussi comme ça qu'on récupère un OTP
   en développement.
+
+### Toutes les commandes
+
+Depuis `api/`.
+
+| Commande | Ce qu'elle fait |
+|---|---|
+| `npm run dev` | API + toutes les pages, port 3000, rechargement à chaud |
+| `npm run jeu-de-donnees` | Comptes et dossiers de test ; affiche le code QR |
+| `npm run jeu-de-donnees -- --vider` | Efface ces données |
+| `npm run demonstration` | 37 vérifications de bout en bout (API à lancer avant) |
+| `npm test` | 172 tests unitaires, ~10 s, aucune base requise |
+| `npm run typecheck` | Vérification des types, sans compiler |
+| `npm run creer-superadmin -- 699452108` | Amorçage : le premier superadmin, mot de passe demandé au clavier |
+| `npm run build` puis `npm start` | Compilation et exécution en production |
 
 ---
 
