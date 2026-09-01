@@ -82,7 +82,7 @@ dans le navigateur.
 
 | Interface | Adresse | Entrer avec |
 |---|---|---|
-| **Passager** — scan | `http://localhost:3000/s/4NRZ7KT` | rien, remplacer par votre code |
+| **Passager** — scan | `http://localhost:3000/s/CODE` | le `CODE` affiché par le jeu de données |
 | **Passager** — accueil | `http://localhost:3000/` | rien, saisie manuelle du code |
 | **Chauffeur** — connexion | `http://localhost:3000/chauffeur/connexion` | `699452108` + code SMS |
 | **Chauffeur** — inscription | `http://localhost:3000/chauffeur/inscription` | un numéro non utilisé |
@@ -96,21 +96,21 @@ pages ci-dessus, une fois le trajet démarré ou la connexion établie.
 Chaque interface est détaillée plus bas — comptes de test, codes SMS,
 états de dossier à observer.
 
-Le second script affiche les comptes créés et **le code QR à utiliser** :
+Le second script termine par **l'adresse à ouvrir**, en gras :
 
 ```
-699452108  Paul Bertrand NGONO    verifie
-           → QR 4NRZ7KT — scannable
+Pour commencer :
+  L'écran passager  http://localhost:3000/s/A3H2KDQ
 ```
 
-Ce code **change à chaque exécution** du script : remplacer `4NRZ7KT`
-par celui que votre terminal affiche. Un code inventé donne « CODE NON
-RECONNU » — c'est le comportement attendu, pas une panne.
+Ce code **change à chaque exécution** du script. Un code périmé donne
+« CODE NON RECONNU » : c'est le comportement attendu, pas une panne —
+un QR révoqué doit cesser de fonctionner.
 
-Pour retrouver un code actif sans relancer le script :
+Si le terminal a défilé, ou pour retrouver le code sans tout relancer :
 
 ```bash
-psql -d securitaxi -c "SELECT jeton FROM code_qr WHERE actif;"
+psql -d securitaxi -tAc "SELECT jeton FROM code_qr WHERE actif;"
 ```
 
 #### L'écran passager
@@ -120,7 +120,7 @@ installation.
 
 | Ouvrir dans le navigateur | Ce que ça montre |
 |---|---|
-| `http://localhost:3000/s/4NRZ7KT` | **Le scan** — identité du chauffeur, plaque, statut. L'écran qui décide si on monte. |
+| `http://localhost:3000/s/CODE` | **Le scan** — identité du chauffeur, plaque, statut. L'écran qui décide si on monte. |
 | `http://localhost:3000/` | L'accueil, avec le champ de saisie manuelle d'un code |
 
 Depuis l'écran de scan : **« Démarrer le trajet »** → suivi en direct,

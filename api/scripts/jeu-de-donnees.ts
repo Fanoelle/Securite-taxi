@@ -194,11 +194,19 @@ async function principal() {
       if (c.jetonQr) console.log(`           → QR ${c.jetonQr} — scannable`);
     }
     console.log('─'.repeat(largeur));
+    // Le code QR change a chaque execution : c'est la seule information
+    // de cette sortie qu'on doit recopier ailleurs. Elle etait jusqu'ici
+    // noyee dans la liste des comptes, et on la cherchait. On la redonne
+    // ici sous la forme ou elle sert vraiment : une adresse a ouvrir.
     console.log('Pour commencer :');
     const scannable = cree.find((c) => c.jetonQr);
     if (scannable) {
+      const base = process.env.URL_PUBLIQUE || 'http://localhost:3000';
+      console.log(`  \x1b[1mL'écran passager  ${base}/s/${scannable.jetonQr}\x1b[0m`);
       console.log(`  curl localhost:3000/api/scan/${scannable.jetonQr}`);
     }
+    console.log('  L\'écran chauffeur : http://localhost:3000/chauffeur/connexion');
+    console.log('  L\'écran agent     : http://localhost:3000/agent/connexion');
     console.log('  Documentation interactive : http://localhost:3000/api/docs\n');
   } finally {
     await pool.end();
