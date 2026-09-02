@@ -217,16 +217,37 @@ export class ChauffeursService {
         );
       }
 
-      // Émission du QR : un seul actif à la fois.
+      // Émission du QR.
+      //
+      // Depuis l'instauration des frais, la validation et l'emission sont
+      // deux temps distincts : l'agent valide, puis le QR est emis une
+      // fois les frais regles (voir PaiementsService). Encaisser avant la
+      // validation obligerait a rembourser un dossier rejete — donc une
+      // procedure, un litige possible, et du code pour le gerer.
+      //
+      // Le QR reste emis ici quand l'autorite n'a fixe aucun tarif : une
+      // commune qui ne fait pas payer ne doit pas se retrouver avec des
+      // chauffeurs valides et sans code. C'est le comportement d'avant,
+      // conserve pour qui n'a pas instaure de frais.
+      const tarif = await client.query(
+        'SELECT frais_qr_fcfa, validite_qr_mois FROM autorite WHERE id = $1',
+        [autoriteId],
+      );
+      const fraisFixes = tarif.rows[0]?.frais_qr_fcfa != null
+        && Number(tarif.rows[0].frais_qr_fcfa) > 0;
+
       const qrExistant = await client.query(
-        'SELECT jeton FROM code_qr WHERE chauffeur_id = $1 AND actif',
+        `SELECT jeton, expire_le FROM code_qr
+          WHERE chauffeur_id = $1 AND actif`,
         [chauffeurId],
       );
 
-      let jeton: string;
+      let jeton: string | null = null;
       if (qrExistant.rowCount) {
+        // Un QR deja actif est conserve : revalider un dossier ne doit
+        // pas changer un code deja imprime et colle dans un taxi.
         jeton = qrExistant.rows[0].jeton;
-      } else {
+      } else if (!fraisFixes) {
         jeton = await this.jetonUnique(client);
         await client.query(
           'INSERT INTO code_qr (chauffeur_id, jeton) VALUES ($1, $2)',
@@ -235,11 +256,23 @@ export class ChauffeursService {
       }
 
       await this.tracer(client, agentCompteId, 'chauffeur.valide', chauffeurId,
-                        { decision: dto.decision, reference });
+                        { decision: dto.decision, reference,
+                          qrEmis: jeton !== null, fraisFixes });
 
-      this.logger.log(`Dossier ${chauffeurId} validé (${dto.decision}), QR ${jeton}`);
+      this.logger.log(
+        jeton
+          ? `Dossier ${chauffeurId} validé (${dto.decision}), QR ${jeton}`
+          : `Dossier ${chauffeurId} validé (${dto.decision}) — QR en attente de paiement`,
+      );
 
-      return { statut: dto.decision, referenceLicence: reference, jetonQr: jeton };
+      return {
+        statut: dto.decision,
+        referenceLicence: reference,
+        jetonQr: jeton,
+        // Ce que l'agent doit dire au chauffeur en le raccompagnant.
+        paiementRequis: jeton === null,
+        fraisFcfa: fraisFixes ? Number(tarif.rows[0].frais_qr_fcfa) : null,
+      };
     });
   }
 

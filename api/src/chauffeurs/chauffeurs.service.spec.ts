@@ -25,6 +25,7 @@ describe('ChauffeursService — validation de dossier', () => {
     dossier?: any;
     pieces?: Array<{ type: string; verdict: string | null }>;
     qrExistant?: string;
+    fraisQrFcfa?: number | null;
   } = {}) => {
     const pieces = options.pieces ?? REQUIS.map((type) => ({ type, verdict: 'lisible' }));
 
@@ -41,8 +42,19 @@ describe('ChauffeursService — validation de dossier', () => {
       }
       if (/FROM code_qr/.test(sql)) {
         return options.qrExistant
-          ? { rowCount: 1, rows: [{ jeton: options.qrExistant }] }
+          ? { rowCount: 1, rows: [{ jeton: options.qrExistant, expire_le: null }] }
           : { rowCount: 0, rows: [] };
+      }
+      // Tarif de l'autorite : NULL par defaut, donc pas de frais et le
+      // QR est emis a la validation comme avant leur instauration.
+      if (/frais_qr_fcfa.*FROM autorite/.test(sql)) {
+        return {
+          rowCount: 1,
+          rows: [{
+            frais_qr_fcfa: options.fraisQrFcfa ?? null,
+            validite_qr_mois: 6,
+          }],
+        };
       }
       return { rowCount: 0, rows: [] };
     });
@@ -225,6 +237,52 @@ describe('ChauffeursService — validation de dossier', () => {
       const [sql, params] = base.requete.mock.calls[0];
       expect(sql).not.toContain('a.id = $1');
       expect(params).toBeUndefined();
+    });
+  });
+
+  /**
+   * Depuis l'instauration des frais, valider et emettre sont deux temps
+   * distincts. Mais une commune qui ne fait pas payer ne doit pas se
+   * retrouver avec des chauffeurs valides et sans code : le QR reste
+   * emis a la validation tant qu'aucun tarif n'est fixe.
+   */
+  describe('emission du QR selon le tarif de l\'autorite', () => {
+    it('emet le QR a la validation quand aucun tarif n\'est fixe', async () => {
+      monter({ fraisQrFcfa: null });
+
+      const r = await service.validerDossier('ch-1', 'a-1', 'aut-1', { decision: 'verifie' });
+
+      expect(r.jetonQr).toHaveLength(7);
+      expect(r.paiementRequis).toBe(false);
+      expect(client.query.mock.calls.some(
+        (c) => /INSERT INTO code_qr/.test(c[0]))).toBe(true);
+    });
+
+    it('n\'emet pas le QR quand des frais sont dus', async () => {
+      monter({ fraisQrFcfa: 5000 });
+
+      const r = await service.validerDossier('ch-1', 'a-1', 'aut-1', { decision: 'verifie' });
+
+      // Le dossier est valide — la reference de licence existe — mais le
+      // QR attend le paiement. C'est ce que l'agent dit au chauffeur.
+      expect(r.statut).toBe('verifie');
+      expect(r.referenceLicence).toBe('0007-DLA');
+      expect(r.jetonQr).toBeNull();
+      expect(r.paiementRequis).toBe(true);
+      expect(r.fraisFcfa).toBe(5000);
+      expect(client.query.mock.calls.some(
+        (c) => /INSERT INTO code_qr/.test(c[0]))).toBe(false);
+    });
+
+    it('conserve un QR deja actif meme si des frais sont dus', async () => {
+      monter({ fraisQrFcfa: 5000, qrExistant: 'DEJA123' });
+
+      const r = await service.validerDossier('ch-1', 'a-1', 'aut-1', { decision: 'verifie' });
+
+      // Revalider un dossier ne doit pas changer un code deja imprime et
+      // colle dans un taxi.
+      expect(r.jetonQr).toBe('DEJA123');
+      expect(r.paiementRequis).toBe(false);
     });
   });
 });

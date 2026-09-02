@@ -13,6 +13,7 @@ import { TrajetsModule } from './trajets/trajets.module';
 import { AlertesModule } from './alertes/alertes.module';
 import { DocumentsModule } from './documents/documents.module';
 import { SignalementsModule } from './signalements/signalements.module';
+import { PaiementsModule } from './paiements/paiements.module';
 import { PublicModule } from './public/public.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { PublicModule } from './public/public.module';
     AlertesModule,
     DocumentsModule,
     SignalementsModule,
+    PaiementsModule,
     PublicModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

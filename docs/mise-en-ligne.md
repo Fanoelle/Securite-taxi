@@ -204,7 +204,7 @@ n'est plus tenable. Il faut alors :
 | Voir les journaux | `docker compose logs -f` |
 | Lire un code SMS de connexion | `docker compose logs api \| grep '\[SMS'` |
 | Redémarrer | `docker compose restart` |
-| Mettre à jour le code | `git pull && docker compose up -d --build` |
+| Mettre à jour le code | `git pull && docker compose up -d --build` — voir ci-dessous |
 | Réinstaller le jeu de démo | `docker compose --profile amorcage run --rm --build amorcage` |
 | Effacer le jeu de démo | `docker compose --profile amorcage run --rm amorcage --vider` |
 | Tout arrêter | `docker compose down` |
@@ -217,6 +217,59 @@ Le `--build` de la ligne « réinstaller le jeu de démo » n'est pas
 décoratif : sans lui, `run` réutilise l'image déjà construite et
 ignore les modifications du code. On croit alors avoir changé quelque
 chose sans que rien ne bouge.
+
+---
+
+## Mettre à jour une plateforme déjà en ligne
+
+Un déploiement n'est pas une gravure. On modifie après, et c'est la
+norme — il n'y a aucune raison d'attendre que tout soit fini pour
+mettre en ligne.
+
+### Le cas courant : du code seulement
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Docker reconstruit l'image et remplace le conteneur. **Les données
+restent** : elles vivent dans des volumes, pas dans le conteneur.
+Quelques secondes d'interruption, pas davantage.
+
+### Le cas qui demande une précaution : le schéma a changé
+
+Les fichiers de `db/` ne sont joués **qu'à la création de la base**.
+Sur une base déjà en service, ils sont ignorés — Docker ne rejoue pas
+`docker-entrypoint-initdb.d` sur un volume existant. Il faut donc
+appliquer la migration à la main :
+
+```bash
+# 1. Sauvegarder d'abord. Toujours.
+docker compose exec entretien /usr/local/bin/entretien.sh
+
+# 2. Appliquer la migration
+docker compose exec -T db psql -U securitaxi -d securitaxi \
+  -v ON_ERROR_STOP=1 < db/migrations/2026-09-02_paiement_expiration_qr.sql
+
+# 3. Puis seulement, mettre le code à jour
+docker compose up -d --build
+```
+
+`ON_ERROR_STOP=1` n'est pas décoratif : sans lui, `psql` continue après
+une erreur et laisse le schéma à moitié migré — l'état le plus pénible
+à rattraper.
+
+Les migrations de `db/migrations/` sont **idempotentes** : les rejouer
+ne casse rien. En cas de doute sur ce qui a déjà été appliqué, rejouez.
+
+### Comment savoir si une migration est en attente
+
+```bash
+docker compose exec -T db psql -U securitaxi -d securitaxi -c "\d paiement"
+```
+
+Une table ou une colonne absente signale une migration non appliquée.
 
 ---
 

@@ -79,6 +79,13 @@ npm run dev                # 1. API + pages, port 3000 — laisser tourner
 npm run jeu-de-donnees     # 2. dans un autre terminal : données de test
 ```
 
+> **Deux terminaux, vraiment.** `npm run dev` ne rend jamais la main :
+> tant qu'il tourne, le terminal lui appartient. Taper la seconde
+> commande à sa suite ne la lance pas — elle attend. Elle ne s'exécutera
+> qu'au moment où vous arrêterez le serveur par Ctrl+C, et affichera
+> alors un code QR que plus aucune API ne sert. C'est la cause la plus
+> fréquente d'un « code invalide ».
+
 **Un seul serveur sert tout.** Il n'y a rien d'autre à lancer : pas de
 serveur de façade, pas d'étape de compilation. Les pages sont produites
 par l'API elle-même, et chaque interface n'est qu'une adresse à ouvrir
@@ -114,8 +121,14 @@ un QR révoqué doit cesser de fonctionner.
 Si le terminal a défilé, ou pour retrouver le code sans tout relancer :
 
 ```bash
-psql -d securitaxi -tAc "SELECT jeton FROM code_qr WHERE actif;"
+psql -d securitaxi -tAc "SELECT jeton FROM v_scan_public;"
 ```
+
+Interroger `v_scan_public` plutôt que `code_qr` n'est pas un détail :
+c'est la vue que le scan lit réellement. `SELECT jeton FROM code_qr
+WHERE actif` peut renvoyer un jeton **expiré** — actif en base, mais
+refusé par la page. La vue, elle, ne montre que ce qui se scanne
+vraiment.
 
 #### L'écran passager
 
