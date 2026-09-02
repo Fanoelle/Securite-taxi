@@ -7,6 +7,10 @@ si ses papiers ont été contrôlés, et par quelle autorité.
 S'il monte, il peut partager son trajet avec un proche et déclencher une
 alerte d'un seul appui.
 
+> **[Voir la présentation du projet →](https://fanoelle.github.io/Securite-taxi/)**
+> Les écrans, les six invariants, et les décisions techniques avec leur
+> raison. Ce README, lui, sert à faire tourner le projet.
+
 ---
 
 ## Le problème
@@ -300,7 +304,8 @@ securite-taxi-cameroun/
 └── test-visuel/      banc d'essai montrant les appels HTTP
 ```
 
-**7 000 lignes de TypeScript, 19 tables, 172 tests.**
+**6 398 lignes de TypeScript** dans `api/src`, hors tests — 7 242 avec les
+scripts d'amorçage. **20 tables, 172 tests.**
 
 ### Choix techniques
 
