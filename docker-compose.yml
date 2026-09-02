@@ -1,0 +1,212 @@
+# =====================================================================
+#  Deploiement de demonstration — plateforme de securite des taxis.
+#
+#  Trois services : la base, l'API, et Caddy qui termine le TLS.
+#
+#  Usage :
+#      cp .env.example .env      puis remplir .env
+#      docker compose up -d
+#      docker compose logs -f
+#
+#  Caddy obtient le certificat HTTPS aupres de Let's Encrypt tout seul,
+#  a la premiere requete sur le domaine. Il n'y a aucun certificat a
+#  installer ni a renouveler a la main.
+# =====================================================================
+
+services:
+
+  # -------------------------------------------------------------------
+  # La base. Image postgis plutot que postgres : elle embarque
+  # l'extension, ce qui fait passer db/004_postgis.sql sans le probleme
+  # de droits superuser rencontre en installation locale. Ici
+  # l'initialisation tourne en superuser, donc l'extension s'active.
+  # -------------------------------------------------------------------
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-securitaxi}
+      POSTGRES_USER: ${POSTGRES_USER:-securitaxi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
+    volumes:
+      - donnees_db:/var/lib/postgresql/data
+      # Les scripts sont joues UNE SEULE FOIS, a la creation du volume.
+      # Le prefixe numerique fixe l'ordre : c'est celui de db/installer.sh.
+      - ./db/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./db/002_referentiel.sql:/docker-entrypoint-initdb.d/002_referentiel.sql:ro
+      - ./db/003_vues.sql:/docker-entrypoint-initdb.d/003_vues.sql:ro
+      - ./db/004_postgis.sql:/docker-entrypoint-initdb.d/004_postgis.sql:ro
+      - ./db/010_retention.sql:/docker-entrypoint-initdb.d/010_retention.sql:ro
+    # L'API attend que la base reponde vraiment, pas seulement que le
+    # conteneur soit lance : PostgreSQL accepte les connexions plusieurs
+    # secondes apres son demarrage.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-securitaxi} -d ${POSTGRES_DB:-securitaxi}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Aucun port publie : la base n'est joignable que depuis le reseau
+    # interne de compose. Exposer 5432 sur l'internet reviendrait a
+    # offrir les dossiers des chauffeurs a qui devine un mot de passe.
+
+  # -------------------------------------------------------------------
+  # L'API. Elle sert aussi les pages : scan, chauffeur, agent.
+  # -------------------------------------------------------------------
+  api:
+    build:
+      context: ./api
+      target: execution
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-securitaxi}
+      PGUSER: ${POSTGRES_USER:-securitaxi}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET absent du .env}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-12h}
+      # Ces deux-la doivent porter le vrai domaine : les QR imprimes et
+      # les liens de suivi envoyes par SMS en dependent.
+      URL_PUBLIQUE: https://${DOMAINE:?DOMAINE absent du .env}
+      ORIGINES_AUTORISEES: https://${DOMAINE}
+      STOCKAGE_DOCUMENTS: /app/stockage/documents
+      STOCKAGE_PHOTOS: /app/stockage/photos
+      SMS_FOURNISSEUR: ${SMS_FOURNISSEUR:-console}
+      SMS_NEXAH_UTILISATEUR: ${SMS_NEXAH_UTILISATEUR:-}
+      SMS_NEXAH_MOTDEPASSE: ${SMS_NEXAH_MOTDEPASSE:-}
+      SMS_NEXAH_URL: ${SMS_NEXAH_URL:-}
+      SMS_EXPEDITEUR: ${SMS_EXPEDITEUR:-}
+      SWAGGER_PUBLIC: ${SWAGGER_PUBLIC:-false}
+    volumes:
+      # Les pieces d'identite survivent a la reconstruction de l'image.
+      # Ce sont des donnees personnelles irremplacables : elles ne
+      # vivent pas dans le conteneur.
+      - pieces:/app/stockage/documents
+      - photos:/app/stockage/photos
+    # Pas de ports: non plus. Seul Caddy parle a l'API, par le reseau
+    # interne. Rien n'atteint le port 3000 sans passer par le TLS.
+
+  # -------------------------------------------------------------------
+  # Entretien — toutes les nuits.
+  #
+  #  Trois choses, dans cet ordre : sauvegarder, purger, faire tourner
+  #  les sauvegardes.
+  #
+  #  La purge n'est pas un confort. La loi n° 2024/017 impose d'effacer
+  #  les traces GPS a 30 jours ; les fonctions existent en base depuis
+  #  le debut (db/010_retention.sql) mais rien ne les appelait. C'est
+  #  ce service qui les appelle.
+  #
+  #  Les volumes des pieces et des photos sont montes en LECTURE SEULE.
+  #  Un service de sauvegarde n'a aucune raison d'ecrire dans ce qu'il
+  #  sauvegarde, et un bogue de sa part ne doit pas pouvoir detruire
+  #  les originaux.
+  # -------------------------------------------------------------------
+  entretien:
+    build:
+      context: ./entretien
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: ${FUSEAU_HORAIRE:-Africa/Douala}
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:-securitaxi}
+      PGUSER: ${POSTGRES_USER:-securitaxi}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
+      # Heure d'execution, format HH:MM, dans le fuseau ci-dessus.
+      HEURE_ENTRETIEN: ${HEURE_ENTRETIEN:-03:00}
+      RETENTION_SAUVEGARDES_JOURS: ${RETENTION_SAUVEGARDES_JOURS:-14}
+      RETENTION_GPS_JOURS: ${RETENTION_GPS_JOURS:-30}
+      # Passer a true pour verifier l'installation sans attendre la
+      # nuit. A remettre a false ensuite : sinon chaque redemarrage
+      # relance une sauvegarde complete.
+      ENTRETIEN_AU_DEMARRAGE: ${ENTRETIEN_AU_DEMARRAGE:-false}
+    volumes:
+      - sauvegardes:/sauvegardes
+      - pieces:/pieces:ro
+      - photos:/photos:ro
+
+  # -------------------------------------------------------------------
+  # Amorcage — le premier jour seulement.
+  #
+  #  Ce service ne demarre PAS avec les autres : il est derriere un
+  #  profil, donc `docker compose up -d` l'ignore. On l'appelle une
+  #  fois, a la main :
+  #
+  #      docker compose --profile amorcage run --rm amorcage
+  #
+  #  Il installe le jeu de donnees de demonstration : des chauffeurs
+  #  dans des etats varies, avec des QR scannables. Sans lui, le site
+  #  est en ligne mais vide — rien a montrer, rien a scanner.
+  #
+  #  NODE_ENV vaut ici « demonstration » et non « production ».
+  #  Ce n'est pas un contournement : le script refuse de s'executer en
+  #  production, et cette garde doit rester. Elle protege une vraie
+  #  base de chauffeurs d'un effacement — le script vide les tables
+  #  avant de les remplir. Une demonstration n'a pas de vraie base a
+  #  perdre ; une production, si.
+  # -------------------------------------------------------------------
+  amorcage:
+    profiles: ["amorcage"]
+    build:
+      context: ./api
+      target: amorcage
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: demonstration
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-securitaxi}
+      PGUSER: ${POSTGRES_USER:-securitaxi}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?mot de passe de la base absent du .env}
+      URL_PUBLIQUE: https://${DOMAINE:?DOMAINE absent du .env}
+
+  # -------------------------------------------------------------------
+  # Caddy : HTTPS automatique. C'est lui qui rend le suivi de trajet
+  # utilisable — la geolocalisation du navigateur exige HTTPS des qu'on
+  # sort de localhost.
+  # -------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"     # sert aussi la verification Let's Encrypt
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAINE: ${DOMAINE:?DOMAINE absent du .env}
+      COURRIEL_TLS: ${COURRIEL_TLS:?COURRIEL_TLS absent du .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Les certificats obtenus. Sans ce volume, chaque redemarrage en
+      # redemanderait de nouveaux — et Let's Encrypt limite le nombre
+      # de demandes par semaine. On finirait bloque sans HTTPS.
+      - caddy_donnees:/data
+      - caddy_config:/config
+
+volumes:
+  donnees_db:
+  pieces:
+  photos:
+  caddy_donnees:
+  caddy_config:
+  # Les sauvegardes sont un dossier de l'hote, pas un volume Docker :
+  # elles doivent etre visibles et copiables sans passer par docker.
+  # Une sauvegarde qu'on ne sait pas atteindre n'en est pas une.
+  sauvegardes:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CHEMIN_SAUVEGARDES:-./sauvegardes}

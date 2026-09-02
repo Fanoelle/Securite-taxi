@@ -17,7 +17,23 @@ import { genererJeton } from '../src/commun/format';
 
 config();
 
-const MOT_DE_PASSE = 'DeveloppementSecuriTaxi2026';
+/**
+ * Mot de passe commun a tous les comptes de demonstration.
+ *
+ * Volontairement trivial : ces comptes n'existent que pour montrer la
+ * plateforme, et un mot de passe qu'on doit copier-coller pendant une
+ * demonstration en gene le deroulement. Huit caracteres, le minimum
+ * accepte a la creation d'un agent.
+ *
+ * Il ne protege rien, et c'est assume : le jeu de donnees est factice.
+ * La consequence est ailleurs — sur un site public, quiconque le
+ * connait devient agent de validation et voit les pieces deposees.
+ * D'ou la regle : aucune vraie piece d'identite sur une instance de
+ * demonstration. Avant tout usage reel, ces comptes se suppriment
+ * (`--vider`) et les vrais agents se creent avec des mots de passe
+ * tires au sort.
+ */
+const MOT_DE_PASSE = '12345678';
 const SESSION = 'session-developpement-' + '0'.repeat(12);
 
 const TABLES = [

@@ -1,0 +1,36 @@
+# =====================================================================
+#  Caddy — terminaison TLS et relais vers l'API.
+#
+#  Ce fichier tient en quelques lignes parce que Caddy fait le reste
+#  seul : il demande le certificat a Let's Encrypt, le renouvelle, et
+#  redirige HTTP vers HTTPS sans qu'on ait a l'ecrire.
+#
+#  Prealable : le domaine doit pointer vers l'IP du serveur (un
+#  enregistrement DNS de type A) AVANT le premier demarrage. Sans cela
+#  Let's Encrypt ne peut pas verifier que le domaine vous appartient,
+#  et le certificat est refuse.
+# =====================================================================
+
+{
+    # Adresse ou Let's Encrypt previent d'un certificat proche de
+    # l'expiration ou d'un renouvellement en echec. Une boite reellement
+    # relevee : c'est le seul avertissement avant que le site passe en
+    # « connexion non securisee ».
+    email {$COURRIEL_TLS}
+}
+
+{$DOMAINE} {
+    # L'API sert a la fois les pages et les points d'entree JSON.
+    # Caddy ajoute X-Forwarded-For et X-Forwarded-Proto de lui-meme :
+    # l'API voit l'adresse reelle du client, pas celle de Caddy.
+    reverse_proxy api:3000
+
+    encode gzip
+
+    # Journal en JSON : lisible par un humain en cas d'incident, et
+    # exploitable par un outil si le besoin vient.
+    log {
+        output stdout
+        format json
+    }
+}

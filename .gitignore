@@ -26,3 +26,6 @@ npm-debug.log*
 
 # Profil du navigateur de test : 146 Mo de cache, régénéré à chaque run.
 test-visuel/.chr/
+
+# Les sauvegardes : des donnees personnelles, jamais dans le depot.
+sauvegardes/

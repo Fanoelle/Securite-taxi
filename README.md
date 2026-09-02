@@ -86,7 +86,7 @@ dans le navigateur.
 | **Passager** — accueil | `http://localhost:3000/` | rien, saisie manuelle du code |
 | **Chauffeur** — connexion | `http://localhost:3000/chauffeur/connexion` | `699452108` + code SMS |
 | **Chauffeur** — inscription | `http://localhost:3000/chauffeur/inscription` | un numéro non utilisé |
-| **Agent** — connexion | `http://localhost:3000/agent/connexion` | `699000002` / `DeveloppementSecuriTaxi2026` |
+| **Agent** — connexion | `http://localhost:3000/agent/connexion` | `699000002` / `12345678` |
 | **Superadmin** | `http://localhost:3000/api/docs` | Swagger — pas d'écran dédié |
 
 Les adresses `/t/:jeton` (suivi du trajet), `/chauffeur` (le dossier) et
@@ -152,7 +152,7 @@ psql -d securitaxi -c \
 ```
 
 Autres comptes selon l'état de dossier à observer — mot de passe commun
-`DeveloppementSecuriTaxi2026` :
+`12345678` :
 
 | Numéro | État du dossier |
 |---|---|
@@ -164,7 +164,7 @@ Autres comptes selon l'état de dossier à observer — mot de passe commun
 #### L'écran agent
 
 `http://localhost:3000/agent/connexion`, avec `699000002` /
-`DeveloppementSecuriTaxi2026`. La file ne montre que les dossiers de la
+`12345678`. La file ne montre que les dossiers de la
 commune de l'agent — la ville vient du jeton, jamais de l'URL.
 
 Ouvrir un dossier, déplier chaque pièce, rendre un verdict. Le bouton de
@@ -392,7 +392,7 @@ npm run jeu-de-donnees
 | `695112233` | chauffeur | dossier vide |
 | `698776655` | chauffeur | suspendu, QR révoqué |
 
-Mot de passe commun : `DeveloppementSecuriTaxi2026`.
+Mot de passe commun : `12345678`.
 Pour effacer : `npm run jeu-de-donnees -- --vider`.
 
 ### 4. À la main
@@ -418,6 +418,37 @@ Depuis `api/`.
 | `npm run typecheck` | Vérification des types, sans compiler |
 | `npm run creer-superadmin -- 699452108` | Amorçage : le premier superadmin, mot de passe demandé au clavier |
 | `npm run build` puis `npm start` | Compilation et exécution en production |
+
+---
+
+## Mettre en ligne
+
+Tout ce qui précède décrit la plateforme sur votre machine. Pour la
+rendre accessible publiquement, en HTTPS :
+
+> **[docs/mise-en-ligne.md](docs/mise-en-ligne.md)** — la marche à
+> suivre complète, depuis l'achat du domaine jusqu'au site en ligne.
+> Écrite pour un premier déploiement : elle ne suppose ni serveur ni
+> connaissance de Docker.
+
+Le déploiement tient en trois fichiers à la racine :
+
+| Fichier | Rôle |
+|---|---|
+| `docker-compose.yml` | Les services : base, API, Caddy |
+| `Caddyfile` | Le HTTPS, obtenu et renouvelé automatiquement |
+| `.env.example` | Le modèle de configuration, à copier en `.env` |
+
+Une fois le domaine acheté et pointé vers le serveur :
+
+```bash
+cp .env.example .env      # puis le remplir
+docker compose up -d --build
+docker compose --profile amorcage run --rm amorcage   # jeu de démonstration
+```
+
+Le HTTPS n'est pas un confort : la géolocalisation du suivi de trajet
+est refusée par les navigateurs hors `localhost` sans lui.
 
 ---
 
@@ -480,7 +511,9 @@ garde une trace des deux versions.
 
 - Pas d'écran superadmin : la supervision passe par Swagger.
 - `db/verifier.sh` échoue sur `CREATE EXTENSION postgis` (droits
-  superuser). La plateforme tourne sans.
+  superuser). La plateforme tourne sans. En déploiement Docker le
+  problème ne se pose pas : l'image `postgis` active l'extension à
+  l'initialisation, qui s'exécute en superuser.
 - L'envoi de SMS réel (Nexah) n'a pas été testé contre le fournisseur ;
   l'identifiant d'expéditeur doit être déclaré auprès de l'ART avant
   production.

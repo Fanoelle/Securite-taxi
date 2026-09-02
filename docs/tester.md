@@ -86,7 +86,7 @@ réellement :
 | `695112233` | chauffeur | dossier vide |
 | `698776655` | chauffeur | suspendu, QR révoqué |
 
-Mot de passe commun : `DeveloppementSecuriTaxi2026`.
+Mot de passe commun : `12345678`.
 Le script affiche le jeton QR à scanner. Pour effacer :
 `npm run jeu-de-donnees -- --vider`.
 
@@ -143,7 +143,7 @@ et empêche d'agir sur le trajet d'un autre.
 ```bash
 JETON=$(curl -s -X POST localhost:3000/api/auth/connexion \
   -H 'Content-Type: application/json' \
-  -d '{"telephone":"699000002","motDePasse":"DeveloppementSecuriTaxi2026"}' \
+  -d '{"telephone":"699000002","motDePasse":"12345678"}' \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['jeton'])")
 
 curl localhost:3000/api/chauffeurs/file-validation -H "Authorization: Bearer $JETON"

@@ -1,0 +1,26 @@
+# Ce qui n'a rien a faire dans le contexte de construction.
+#
+# Sans ce fichier, `docker build` enverrait node_modules au demon —
+# des centaines de megaoctets a chaque construction — et pourrait
+# copier un .env local dans l'image.
+
+node_modules/
+dist/
+build/
+
+# Les secrets ne se cuisent jamais dans une image : ils sont fournis a
+# l'execution par docker compose.
+.env
+.env.*
+
+# Les pieces d'identite deposees en developpement. Des donnees
+# personnelles n'entrent pas dans une image que l'on peut publier.
+stockage/
+
+# Tests et sorties de tests : l'image d'execution n'en a pas besoin.
+*.spec.ts
+coverage/
+
+*.log
+npm-debug.log*
+.DS_Store
