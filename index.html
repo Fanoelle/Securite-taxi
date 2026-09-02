@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sécurité Taxi Cameroun</title>
+<meta name="description" content="Une plateforme qui permet à un passager de savoir qui conduit, avant de monter. NestJS, PostgreSQL, SQL écrit à la main.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* ---------------------------------------------------------------
+   Palette reprise du produit lui-meme, pas inventee pour la page :
+   le vert foret des ecrans (#0E3B2E), son vert d'accent (#1F6B45)
+   et l'or des mentions verifiees (#C9A227), sur les fonds cremes
+   que les captures montrent. La page et le produit qu'elle presente
+   doivent appartenir au meme monde.
+
+   L'or est l'accent unique : il marque ce qui est verifie, ce qui
+   est exactement son role dans le produit.
+   --------------------------------------------------------------- */
+:root {
+  --ancre:        #0e3b2e;
+  --ancre-doux:   #14503d;
+  --fond:         #faf8f3;
+  --surface:      #ffffff;
+  --surface-2:    #f0ede5;
+  --trait:        #e0dbd0;
+  --trait-fort:   #c4bdb0;
+  --texte:        #1a2620;
+  --texte-doux:   #55605a;
+  --texte-faible: #7f8a83;
+  --or:           #9c7a14;
+  --or-vif:       #c9a227;
+  --vert:         #1f6b45;
+  --rouge:        #a8342a;
+  --largeur:      68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fond:         #0f1613;
+    --surface:      #17211c;
+    --surface-2:    #1e2a24;
+    --trait:        #2b3831;
+    --trait-fort:   #3f4f46;
+    --texte:        #e9ece9;
+    --texte-doux:   #a6b0aa;
+    --texte-faible: #7b857f;
+    --or:           #d8b23f;
+    --or-vif:       #d8b23f;
+    --vert:         #4d9e72;
+    --rouge:        #d4796c;
+    --ancre:        #0a1310;
+    --ancre-doux:   #12201a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --fond:         #0f1613;
+  --surface:      #17211c;
+  --surface-2:    #1e2a24;
+  --trait:        #2b3831;
+  --trait-fort:   #3f4f46;
+  --texte:        #e9ece9;
+  --texte-doux:   #a6b0aa;
+  --texte-faible: #7b857f;
+  --or:           #d8b23f;
+  --or-vif:       #d8b23f;
+  --vert:         #4d9e72;
+  --rouge:        #d4796c;
+  --ancre:        #0a1310;
+  --ancre-doux:   #12201a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.015em; }
+p { margin: 0; }
+a { color: inherit; }
+
+.enveloppe { max-width: var(--largeur); margin: 0 auto; padding: 0 24px; }
+
+/* --- Bandeau ------------------------------------------------- */
+.bandeau {
+  background: var(--ancre);
+  color: #eef2ef;
+  padding: 72px 0 64px;
+  border-bottom: 3px solid var(--or-vif);
+}
+.oeil {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--or-vif);
+  margin-bottom: 20px;
+}
+.bandeau h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.12; color: #fff; }
+.accroche {
+  margin-top: 20px;
+  font-size: clamp(17px, 2.4vw, 20px);
+  line-height: 1.55;
+  color: #c5d4cc;
+  max-width: 54ch;
+}
+.accroche strong { color: var(--or-vif); font-weight: 600; }
+
+.liens { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+.lien {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 3px;
+  font-size: 14px; font-weight: 500;
+  text-decoration: none; color: #eef2ef;
+  transition: background .15s, border-color .15s;
+}
+.lien:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); }
+.lien.premier { background: var(--or-vif); border-color: var(--or-vif); color: #171203; font-weight: 600; }
+.lien.premier:hover { background: #dbb434; }
+.lien:focus-visible { outline: 2px solid var(--or-vif); outline-offset: 3px; }
+
+/* --- Chiffres ------------------------------------------------ */
+.chiffres {
+  display: flex; flex-wrap: wrap; gap: 28px 40px;
+  margin-top: 40px; padding-top: 28px;
+  border-top: 1px solid rgba(255,255,255,0.14);
+}
+.chiffre { display: flex; flex-direction: column; gap: 2px; }
+.chiffre b {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 24px; font-weight: 500; color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.chiffre span {
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #94a89e;
+}
+
+/* --- Sections ------------------------------------------------ */
+section { padding: 60px 0; border-bottom: 1px solid var(--trait); }
+section:last-of-type { border-bottom: 0; }
+.titre-section {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--texte-faible);
+  margin-bottom: 14px;
+}
+section h2 { font-size: clamp(23px, 3.6vw, 29px); line-height: 1.25; margin-bottom: 20px; }
+section p + p { margin-top: 16px; }
+section p { color: var(--texte-doux); }
+section p strong { color: var(--texte); font-weight: 600; }
+
+/* --- Invariants : une sequence reelle, donc numerotee -------- */
+.invariants { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-direction: column; }
+.invariants li {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  gap: 4px 14px;
+  padding: 16px 0;
+  border-top: 1px solid var(--trait);
+}
+.invariants li:last-child { border-bottom: 1px solid var(--trait); }
+.invariants .n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; font-weight: 500;
+  color: var(--or);
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
+}
+.invariants .quoi { font-weight: 600; color: var(--texte); }
+.invariants .comment { grid-column: 2; font-size: 14.5px; color: var(--texte-doux); }
+.invariants code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.88em;
+  background: var(--surface-2);
+  padding: 1px 5px; border-radius: 2px;
+  color: var(--texte);
+}
+
+/* --- Decisions : probleme / reponse -------------------------- */
+.decisions { display: flex; flex-direction: column; gap: 2px; margin-top: 28px; }
+.decision {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  padding: 22px 24px;
+}
+.decision h3 { font-size: 17px; margin-bottom: 10px; }
+.decision p { font-size: 14.5px; }
+.decision .pourquoi {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px dashed var(--trait);
+  font-size: 14px;
+  color: var(--texte-doux);
+}
+.decision .pourquoi b {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--texte-faible);
+  display: block; margin-bottom: 5px; font-weight: 500;
+}
+
+/* --- Captures ------------------------------------------------ */
+/* Quatre captures d'ecrans de hauteurs tres differentes : sans
+   hauteur commune, la grille se desaligne et la derniere image
+   s'etire seule. On cadre le haut de chaque ecran, qui est la
+   partie qui porte l'information. */
+.captures {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+figure img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  border: 1px solid var(--trait);
+  background: var(--surface);
+  border-radius: 2px;
+}
+@media (max-width: 620px) {
+  .captures { grid-template-columns: repeat(2, 1fr); }
+  figure img { height: 220px; }
+}
+figcaption { font-size: 13px; color: var(--texte-doux); line-height: 1.45; }
+figcaption b { color: var(--texte); font-weight: 600; display: block; }
+
+/* --- Pile technique ------------------------------------------ */
+.pile { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 24px; }
+.pile span {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  padding: 5px 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--trait);
+  border-radius: 2px;
+  color: var(--texte-doux);
+}
+
+/* --- Etat ---------------------------------------------------- */
+.etat { display: flex; flex-direction: column; margin-top: 24px; }
+.etat div {
+  display: grid; grid-template-columns: 5.5rem 1fr; gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid var(--trait);
+  font-size: 14.5px;
+}
+.etat div:last-child { border-bottom: 1px solid var(--trait); }
+.etat .marque {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
+  font-weight: 500; padding-top: 3px;
+}
+.etat .fait { color: var(--vert); }
+.etat .cours { color: var(--or); }
+.etat .reste { color: var(--texte-faible); }
+.etat p { color: var(--texte-doux); }
+
+/* --- Pied ---------------------------------------------------- */
+footer {
+  background: var(--ancre);
+  color: #94a89e;
+  padding: 40px 0;
+  font-size: 13.5px;
+}
+footer a { color: var(--or-vif); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+footer p + p { margin-top: 10px; }
+
+@media (max-width: 560px) {
+  .bandeau { padding: 52px 0 44px; }
+  section { padding: 46px 0; }
+  .invariants li { grid-template-columns: 1.9rem 1fr; }
+  .etat div { grid-template-columns: 1fr; gap: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="bandeau">
+  <div class="enveloppe">
+    <div class="oeil">Projet personnel · Cameroun · 2026</div>
+    <h1>Savoir qui conduit, avant de monter</h1>
+    <p class="accroche">
+      Monter dans un taxi au Cameroun, c'est faire confiance à un inconnu sans
+      pouvoir rien vérifier. Cette plateforme met un code QR dans chaque taxi :
+      le passager le scanne et voit qui conduit, si ses papiers ont été
+      contrôlés, et <strong>par quelle autorité</strong>.
+    </p>
+
+    <div class="liens">
+      <a class="lien premier" href="https://github.com/Fanoelle/Securite-taxi">Le code sur GitHub</a>
+      <a class="lien" href="https://github.com/Fanoelle/Securite-taxi/blob/main/docs/modele-donnees.md">Modèle de données</a>
+      <a class="lien" href="https://github.com/Fanoelle/Securite-taxi/blob/main/docs/mise-en-ligne.md">Déploiement</a>
+    </div>
+
+    <div class="chiffres">
+      <div class="chiffre"><b>6&#8239;398</b><span>lignes TypeScript</span></div>
+      <div class="chiffre"><b>20</b><span>tables</span></div>
+      <div class="chiffre"><b>172</b><span>tests</span></div>
+      <div class="chiffre"><b>0</b><span>dépendance ORM</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">Le problème</div>
+    <h2>Il n'existe aucun registre consultable</h2>
+    <p>
+      Ni le passager, ni son entourage ne peuvent savoir qui conduit. La
+      plateforme apporte trois choses, dans cet ordre : <strong>vérifier</strong>
+      — un QR par chauffeur, adossé à des pièces réellement examinées par une
+      autorité communale ; <strong>suivre</strong> — un proche voit le trajet en
+      direct, sans installer d'application ; <strong>alerter</strong> — un appui
+      prévient les proches et l'autorité, avec la position.
+    </p>
+    <p>
+      Le passager n'a pas de compte, et c'est structurel : il n'existe pas de
+      rôle « passager » dans la base. Quelqu'un qui hésite devant un taxi la
+      nuit n'ouvre pas un magasin d'applications.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">Ce que le passager voit</div>
+    <h2>Trois écrans, aucune installation</h2>
+    <div class="captures">
+      <figure>
+        <img src="captures/1-scan.png" alt="Écran de scan : nom du chauffeur, plaque, statut vérifié et autorité de rattachement.">
+        <figcaption><b>Le scan</b>L'écran qui décide si on monte.</figcaption>
+      </figure>
+      <figure>
+        <img src="captures/2-trajet.png" alt="Écran de suivi de trajet avec le tracé du parcours et le bouton de partage.">
+        <figcaption><b>Le trajet</b>Partagé à un proche par SMS.</figcaption>
+      </figure>
+      <figure>
+        <img src="captures/3-alerte.png" alt="Écran d'alerte déclenchée, avec la position transmise aux proches et à l'autorité.">
+        <figcaption><b>L'alerte</b>Un appui, la position part.</figcaption>
+      </figure>
+      <figure>
+        <img src="captures/9-qr.png" alt="Code QR généré pour un chauffeur validé, prêt à être imprimé et collé dans le taxi.">
+        <figcaption><b>Le QR</b>Émis seulement après validation.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">Les invariants</div>
+    <h2>Six façons dont le produit pourrait mentir</h2>
+    <p>
+      Chacun de ces points répond à une manière dont la plateforme pourrait
+      tromper quelqu'un sur ce qu'elle affirme. Ce ne sont pas des détails
+      d'implémentation : ce sont les règles qui rendent le QR croyable.
+    </p>
+    <ol class="invariants">
+      <li>
+        <span class="n">01</span>
+        <span class="quoi">Aucun QR avant validation</span>
+        <span class="comment">Un chauffeur inscrit n'a pas de code. L'inscription ne prouve rien.</span>
+      </li>
+      <li>
+        <span class="n">02</span>
+        <span class="quoi">Aucune validation sans pièces examinées</span>
+        <span class="comment">Quatre pièces requises et jugées lisibles une par une, sinon pas de référence de licence.</span>
+      </li>
+      <li>
+        <span class="n">03</span>
+        <span class="quoi">Un suspendu ne peut plus paraître vérifié</span>
+        <span class="comment">La suspension révoque le QR dans la même transaction ; le scan renvoie <code>404</code>.</span>
+      </li>
+      <li>
+        <span class="n">04</span>
+        <span class="quoi">Le double appui sur l'alerte ne crée pas de doublon</span>
+        <span class="comment">Quelqu'un qui panique appuie plusieurs fois — l'alerte existante est renvoyée.</span>
+      </li>
+      <li>
+        <span class="n">05</span>
+        <span class="quoi">Une session ne pilote pas le trajet d'une autre</span>
+        <span class="comment">Le jeton de session cloisonne, mais n'authentifie jamais.</span>
+      </li>
+      <li>
+        <span class="n">06</span>
+        <span class="quoi">Un agent ne voit que sa ville</span>
+        <span class="comment">La file de validation est filtrée sur l'autorité portée par le jeton, jamais sur un paramètre d'URL.</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">Décisions</div>
+    <h2>Ce que j'ai choisi, et pourquoi</h2>
+
+    <div class="decisions">
+      <article class="decision">
+        <h3>Le SQL est écrit à la main</h3>
+        <p>
+          Pas d'ORM. Le schéma porte des contraintes que la couche métier ne
+          devrait pas pouvoir contourner : un QR actif exige un chauffeur
+          validé, une alerte close exige une note, un paiement échoué exige un
+          motif.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Une règle écrite en TypeScript se contourne en oubliant d'appeler le
+          service. Une règle écrite en <code>CHECK</code> ne se contourne pas.
+        </p>
+      </article>
+
+      <article class="decision">
+        <h3>L'expiration du QR est portée par la base</h3>
+        <p>
+          La vue publique du scan filtre sur une date, pas sur un drapeau qu'un
+          traitement aurait dû mettre à jour.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Un balayage nocturne qui ne s'exécute pas laisserait des QR expirés
+          paraître valides — exactement le mensonge que le produit ne doit pas
+          commettre. Ici, un QR périmé cesse d'être scannable même si aucune
+          tâche de fond ne tourne.
+        </p>
+      </article>
+
+      <article class="decision">
+        <h3>Le numéro du chauffeur ne sort d'aucune API passager</h3>
+        <p>
+          Pour un objet oublié, le passager obtient une référence et le numéro
+          d'un call center. L'opérateur met en relation.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Un numéro personnel remis à un inconnu ne se reprend plus, et le
+          chauffeur n'a pas choisi son passager. L'opérateur, lui, peut refuser
+          une mise en relation et garde une trace des deux versions.
+        </p>
+      </article>
+
+      <article class="decision">
+        <h3>Photos et pièces d'identité sont stockées séparément</h3>
+        <p>
+          Deux répertoires, deux permissions, deux routes. Le portrait est fait
+          pour être vu par chaque passager ; la carte d'identité n'est vue que
+          par un agent, avec une trace d'audit.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Les pièces portent un nom aléatoire, ne sont jamais servies
+          statiquement, et leur signature binaire est vérifiée au dépôt : un
+          fichier qui se déclare image mais n'en est pas est refusé.
+        </p>
+      </article>
+
+      <article class="decision">
+        <h3>Les pages HTML vivent dans le code, pas sur le disque</h3>
+        <p>
+          Une page servie à quelqu'un qui monte dans un taxi la nuit doit
+          s'afficher même si le reste est cassé.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Un fichier manquant en production n'est pas un risque acceptable pour
+          cet écran-là. C'est aussi pourquoi le tracé du trajet est un SVG
+          calculé, sans fond de carte : pas de bibliothèque à charger au moment
+          où la page doit rester légère.
+        </p>
+      </article>
+
+      <article class="decision">
+        <h3>Tout est en français</h3>
+        <p>
+          Noms de tables, de colonnes, de méthodes, messages d'erreur.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Le domaine est camerounais et les agents qui liront ces messages sont
+          francophones. Traduire dans les deux sens introduit des contresens.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">Construction</div>
+    <h2>Un seul serveur sert tout</h2>
+    <p>
+      Pas de serveur de façade, pas d'étape de compilation côté client. L'API
+      produit les pages elle-même ; chaque interface n'est qu'une adresse à
+      ouvrir. Le déploiement tient en trois conteneurs : la base, l'API, et
+      Caddy qui obtient le certificat HTTPS tout seul.
+    </p>
+    <p>
+      Le HTTPS n'est pas un confort ici : les navigateurs refusent la
+      géolocalisation hors <code>localhost</code> sans lui, donc sans certificat
+      le suivi de trajet ne fonctionne pas du tout.
+    </p>
+    <div class="pile">
+      <span>NestJS</span><span>TypeScript</span><span>PostgreSQL</span>
+      <span>PostGIS</span><span>SQL manuel</span><span>JWT + OTP</span>
+      <span>Docker</span><span>Caddy</span><span>Jest</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="titre-section">État</div>
+    <h2>Où en est le projet</h2>
+    <div class="etat">
+      <div>
+        <span class="marque fait">Fait</span>
+        <p>Les trois parcours complets — passager, chauffeur, agent. Inscription, dépôt des pièces, validation, émission du QR, scan public, suivi de trajet, alerte, signalement et suspension.</p>
+      </div>
+      <div>
+        <span class="marque fait">Fait</span>
+        <p>Déploiement en conteneurs avec HTTPS automatique, sauvegardes nocturnes et purge des traces GPS à 30 jours — une obligation de la loi camerounaise n° 2024/017.</p>
+      </div>
+      <div>
+        <span class="marque cours">En cours</span>
+        <p>Le paiement des frais d'émission du QR. Le schéma est en place et testé ; le code applicatif reste à écrire.</p>
+      </div>
+      <div>
+        <span class="marque reste">À venir</span>
+        <p>L'envoi de SMS réels. L'identifiant d'expéditeur doit être déclaré auprès de l'ART avant toute mise en production.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="enveloppe">
+    <p><strong style="color:#eef2ef">Sécurité Taxi Cameroun</strong> — projet personnel, développé en 2026.</p>
+    <p><a href="https://github.com/Fanoelle/Securite-taxi">github.com/Fanoelle/Securite-taxi</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
