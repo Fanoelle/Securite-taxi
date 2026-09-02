@@ -48,11 +48,22 @@ CREATE TABLE autorite (
     recoit_alertes  boolean NOT NULL DEFAULT false,
     telephone       text,
     actif           boolean NOT NULL DEFAULT true,
+    -- Frais d'emission du QR et duree de validite. Portes par l'autorite
+    -- et non figes dans le code : une commune peut faire evoluer son
+    -- tarif sans redeploiement, et pratiquer un tarif different d'une
+    -- autre. numeric, jamais float : c'est de l'argent.
+    frais_qr_fcfa    numeric(10,0) CHECK (frais_qr_fcfa IS NULL OR frais_qr_fcfa >= 0),
+    validite_qr_mois integer NOT NULL DEFAULT 6
+                       CHECK (validite_qr_mois BETWEEN 1 AND 60),
     cree_le         timestamptz NOT NULL DEFAULT now()
 );
 
 COMMENT ON COLUMN autorite.recoit_alertes IS
     'true seulement si l''autorite a formellement accepte de traiter les alertes en temps reel.';
+COMMENT ON COLUMN autorite.frais_qr_fcfa IS
+    'Frais d''emission du code QR, en FCFA. NULL = tarif non encore fixe, '
+    'l''emission est alors refusee : mieux vaut bloquer que d''encaisser '
+    'un montant arbitraire.';
 
 
 -- =====================================================================
@@ -206,15 +217,74 @@ CREATE TABLE code_qr (
     jeton           text NOT NULL UNIQUE,        -- ex : '0447DLA', court, sans ambiguite
     actif           boolean NOT NULL DEFAULT true,
     emis_le         timestamptz NOT NULL DEFAULT now(),
+    -- Fin de validite. NULL = sans limite (QR emis avant l'instauration
+    -- des frais). Le scan public filtre sur cette date : un QR perime
+    -- cesse d'etre scannable sans qu'aucune tache de fond ait a tourner.
+    expire_le       timestamptz,
     revoque_le      timestamptz,
     motif_revocation text
 );
+
+CREATE INDEX code_qr_expiration_idx ON code_qr (expire_le) WHERE actif;
 
 -- Un seul QR actif par chauffeur.
 CREATE UNIQUE INDEX idx_qr_chauffeur_actif
     ON code_qr(chauffeur_id) WHERE actif;
 
 CREATE INDEX idx_qr_jeton ON code_qr(jeton) WHERE actif;
+
+
+-- =====================================================================
+--  6 bis. PAIEMENT DES FRAIS D'EMISSION
+--
+--  Le QR n'est pas seulement une preuve de controle : c'est aussi une
+--  preuve de paiement, valable le temps que fixe l'autorite.
+--
+--  On encaisse APRES la validation, jamais avant. L'agent examine les
+--  pieces et valide ; le QR n'est emis qu'une fois les frais regles.
+--  Encaisser d'abord obligerait a rembourser un dossier rejete — donc
+--  une procedure, un litige possible. Ici, un dossier rejete n'a rien
+--  encaisse.
+-- =====================================================================
+
+CREATE TABLE paiement (
+    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    chauffeur_id      uuid NOT NULL REFERENCES chauffeur(id) ON DELETE CASCADE,
+    autorite_id       uuid REFERENCES autorite(id),
+    montant_fcfa      numeric(10,0) NOT NULL CHECK (montant_fcfa >= 0),
+    mode              text NOT NULL CHECK (mode IN ('mobile_money','guichet')),
+    operateur         text CHECK (operateur IN ('mtn','orange')),
+    telephone_payeur  text,
+    reference_externe text,
+    statut            text NOT NULL DEFAULT 'en_attente'
+                      CHECK (statut IN ('en_attente','confirme','echoue','expire')),
+    motif             text,
+    -- Ce que le paiement a ouvert comme droit. Renseigne a la
+    -- confirmation, jamais avant.
+    qr_id             uuid REFERENCES code_qr(id) ON DELETE SET NULL,
+    cree_le           timestamptz NOT NULL DEFAULT now(),
+    confirme_le       timestamptz,
+
+    -- Un paiement confirme dit quand il l'a ete ; un paiement echoue dit
+    -- pourquoi. Sans cela, une ligne « echoue » sans motif ne permet de
+    -- repondre a personne.
+    CONSTRAINT paiement_confirme_date CHECK (
+        (statut = 'confirme') = (confirme_le IS NOT NULL)),
+    CONSTRAINT paiement_echec_motive CHECK (
+        statut <> 'echoue' OR motif IS NOT NULL),
+    CONSTRAINT paiement_operateur_requis CHECK (
+        mode <> 'mobile_money' OR operateur IS NOT NULL)
+);
+
+-- La reference du prestataire ne doit compter qu'une fois : les
+-- webhooks Mobile Money arrivent en double, c'est la norme.
+CREATE UNIQUE INDEX paiement_reference_unique
+    ON paiement (reference_externe) WHERE reference_externe IS NOT NULL;
+CREATE INDEX paiement_chauffeur_idx ON paiement (chauffeur_id, cree_le DESC);
+
+COMMENT ON TABLE paiement IS
+    'Frais d''emission du code QR. Une ligne par tentative, y compris les '
+    'echecs : c''est la trace qu''un chauffeur presentera en cas de litige.';
 
 
 -- =====================================================================

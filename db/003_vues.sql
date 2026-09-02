@@ -23,17 +23,21 @@ SELECT
     v.plaque_recoupee,
     vl.nom              AS ville,
     a.nom               AS autorite_nom,
-    c.statut_change_le  AS verifie_le
+    c.statut_change_le  AS verifie_le,
+    q.expire_le
 FROM code_qr q
 JOIN chauffeur c ON c.id = q.chauffeur_id AND c.supprime_le IS NULL
 JOIN vehicule  v ON v.chauffeur_id = c.id AND v.actif
 JOIN ville     vl ON vl.id = c.ville_id
 LEFT JOIN autorite a ON a.id = c.autorite_id
-WHERE q.actif;
+WHERE q.actif
+  AND (q.expire_le IS NULL OR q.expire_le > now());
 
 COMMENT ON VIEW v_scan_public IS
     'Projection publique du scan. Ne jamais y ajouter de donnee sensible : '
-    'cette vue est la frontiere entre le dossier du chauffeur et le passager.';
+    'cette vue est la frontiere entre le dossier du chauffeur et le passager. '
+    'Le filtre sur expire_le fait qu''un QR perime cesse d''etre scannable '
+    'sans qu''aucune tache de fond ait a s''executer.';
 
 
 -- File de validation vue par un agent, avec l'anciennete du dossier.
