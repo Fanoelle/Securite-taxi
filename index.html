@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sécurité Taxi Cameroun</title>
-<meta name="description" content="Une plateforme qui permet à un passager de savoir qui conduit, avant de monter. NestJS, PostgreSQL, SQL écrit à la main.">
+<meta name="description" content="Savoir qui conduit avant de monter. Étude de cas : les trois parcours, les invariants qui tiennent le produit, et les décisions techniques avec leur raison.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -13,20 +13,17 @@
    Palette reprise du produit lui-meme, pas inventee pour la page :
    le vert foret des ecrans (#0E3B2E), son vert d'accent (#1F6B45)
    et l'or des mentions verifiees (#C9A227), sur les fonds cremes
-   que les captures montrent. La page et le produit qu'elle presente
-   doivent appartenir au meme monde.
+   que les captures montrent.
 
-   L'or est l'accent unique : il marque ce qui est verifie, ce qui
-   est exactement son role dans le produit.
+   L'or est l'accent unique. Dans le produit il marque ce qui est
+   verifie ; ici il marque ce qui compte.
    --------------------------------------------------------------- */
 :root {
   --ancre:        #0e3b2e;
-  --ancre-doux:   #14503d;
   --fond:         #faf8f3;
   --surface:      #ffffff;
   --surface-2:    #f0ede5;
   --trait:        #e0dbd0;
-  --trait-fort:   #c4bdb0;
   --texte:        #1a2620;
   --texte-doux:   #55605a;
   --texte-faible: #7f8a83;
@@ -34,16 +31,17 @@
   --or-vif:       #c9a227;
   --vert:         #1f6b45;
   --rouge:        #a8342a;
-  --largeur:      68ch;
+  --largeur:      70ch;
+  --large:        1040px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --ancre:        #0a1310;
     --fond:         #0f1613;
     --surface:      #17211c;
     --surface-2:    #1e2a24;
     --trait:        #2b3831;
-    --trait-fort:   #3f4f46;
     --texte:        #e9ece9;
     --texte-doux:   #a6b0aa;
     --texte-faible: #7b857f;
@@ -51,17 +49,15 @@
     --or-vif:       #d8b23f;
     --vert:         #4d9e72;
     --rouge:        #d4796c;
-    --ancre:        #0a1310;
-    --ancre-doux:   #12201a;
   }
 }
 
 :root[data-theme="dark"] {
+  --ancre:        #0a1310;
   --fond:         #0f1613;
   --surface:      #17211c;
   --surface-2:    #1e2a24;
   --trait:        #2b3831;
-  --trait-fort:   #3f4f46;
   --texte:        #e9ece9;
   --texte-doux:   #a6b0aa;
   --texte-faible: #7b857f;
@@ -69,8 +65,6 @@
   --or-vif:       #d8b23f;
   --vert:         #4d9e72;
   --rouge:        #d4796c;
-  --ancre:        #0a1310;
-  --ancre-doux:   #12201a;
 }
 
 * { box-sizing: border-box; }
@@ -85,17 +79,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.015em; }
+h1, h2, h3, h4 { text-wrap: balance; margin: 0; font-weight: 600; letter-spacing: -0.015em; }
 p { margin: 0; }
 a { color: inherit; }
 
-.enveloppe { max-width: var(--largeur); margin: 0 auto; padding: 0 24px; }
+.lecture { max-width: var(--largeur); margin: 0 auto; padding: 0 24px; }
+.etendu  { max-width: var(--large);   margin: 0 auto; padding: 0 24px; }
 
 /* --- Bandeau ------------------------------------------------- */
 .bandeau {
   background: var(--ancre);
   color: #eef2ef;
-  padding: 72px 0 64px;
+  padding: 76px 0 60px;
   border-bottom: 3px solid var(--or-vif);
 }
 .oeil {
@@ -106,19 +101,19 @@ a { color: inherit; }
   color: var(--or-vif);
   margin-bottom: 20px;
 }
-.bandeau h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.12; color: #fff; }
+.bandeau h1 { font-size: clamp(31px, 6vw, 48px); line-height: 1.1; color: #fff; }
 .accroche {
   margin-top: 20px;
   font-size: clamp(17px, 2.4vw, 20px);
   line-height: 1.55;
   color: #c5d4cc;
-  max-width: 54ch;
+  max-width: 56ch;
 }
 .accroche strong { color: var(--or-vif); font-weight: 600; }
 
 .liens { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
 .lien {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center;
   padding: 9px 16px;
   border: 1px solid rgba(255,255,255,0.22);
   border-radius: 3px;
@@ -131,16 +126,15 @@ a { color: inherit; }
 .lien.premier:hover { background: #dbb434; }
 .lien:focus-visible { outline: 2px solid var(--or-vif); outline-offset: 3px; }
 
-/* --- Chiffres ------------------------------------------------ */
 .chiffres {
-  display: flex; flex-wrap: wrap; gap: 28px 40px;
-  margin-top: 40px; padding-top: 28px;
+  display: flex; flex-wrap: wrap; gap: 26px 40px;
+  margin-top: 42px; padding-top: 28px;
   border-top: 1px solid rgba(255,255,255,0.14);
 }
-.chiffre { display: flex; flex-direction: column; gap: 2px; }
+.chiffre { display: flex; flex-direction: column; gap: 1px; }
 .chiffre b {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 24px; font-weight: 500; color: #fff;
+  font-size: 25px; font-weight: 500; color: #fff;
   font-variant-numeric: tabular-nums;
 }
 .chiffre span {
@@ -149,7 +143,7 @@ a { color: inherit; }
 }
 
 /* --- Sections ------------------------------------------------ */
-section { padding: 60px 0; border-bottom: 1px solid var(--trait); }
+section { padding: 62px 0; border-bottom: 1px solid var(--trait); }
 section:last-of-type { border-bottom: 0; }
 .titre-section {
   font-family: 'IBM Plex Mono', monospace;
@@ -157,17 +151,96 @@ section:last-of-type { border-bottom: 0; }
   color: var(--texte-faible);
   margin-bottom: 14px;
 }
-section h2 { font-size: clamp(23px, 3.6vw, 29px); line-height: 1.25; margin-bottom: 20px; }
-section p + p { margin-top: 16px; }
+section h2 { font-size: clamp(24px, 3.7vw, 30px); line-height: 1.22; margin-bottom: 20px; }
 section p { color: var(--texte-doux); }
+section p + p { margin-top: 15px; }
 section p strong { color: var(--texte); font-weight: 600; }
 
-/* --- Invariants : une sequence reelle, donc numerotee -------- */
-.invariants { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-direction: column; }
+/* --- Parcours : un ecran, sa legende ------------------------- */
+/* Chaque capture est appariee au raisonnement qu'elle illustre.
+   Une capture sans legende ne prouve rien ; une legende sans
+   capture ne se verifie pas. */
+.parcours { margin-top: 34px; }
+.parcours + .parcours { margin-top: 46px; }
+
+.parcours-titre {
+  display: flex; align-items: baseline; gap: 11px;
+  padding-bottom: 9px;
+  border-bottom: 2px solid var(--ancre);
+  margin-bottom: 22px;
+}
+.parcours-titre h3 { font-size: 19px; }
+.parcours-titre .qui {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--or);
+  font-weight: 500;
+}
+
+.ecrans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
+  gap: 26px 20px;
+}
+figure { margin: 0; display: flex; flex-direction: column; gap: 11px; }
+figure img {
+  width: 100%;
+  height: 355px;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  border: 1px solid var(--trait);
+  border-radius: 3px;
+  background: var(--surface);
+}
+figcaption { font-size: 13.5px; color: var(--texte-doux); line-height: 1.5; }
+figcaption b {
+  display: block;
+  color: var(--texte);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* L'ecran qui porte l'argument principal n'est pas recadre : c'est la
+   preuve, elle doit se lire en entier. L'image garde ses proportions
+   dans une colonne etroite, la legende occupe le reste — sinon une
+   capture en format telephone etiree sur toute la largeur laisse un
+   grand vide a sa droite. */
+figure.pivot {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 300px) 1fr;
+  gap: 26px;
+  align-items: start;
+  margin-top: 8px;
+}
+figure.pivot img {
+  height: auto;
+  max-height: 700px;
+  object-fit: contain;
+  object-position: top center;
+}
+figure.pivot figcaption { max-width: 58ch; font-size: 14.5px; }
+
+@media (max-width: 720px) {
+  figure.pivot { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Le code QR est en bas de l'ecran chauffeur : un cadrage par le
+   haut montrerait tout sauf lui. */
+figure.bas img { object-position: bottom center; }
+
+/* La file d'attente tient dans son premier tiers : le reste de la
+   capture est du fond vide. */
+figure.court img { height: 250px; }
+
+/* --- Invariants ---------------------------------------------- */
+.invariants { list-style: none; margin: 28px 0 0; padding: 0; }
 .invariants li {
   display: grid;
   grid-template-columns: 2.4rem 1fr;
-  gap: 4px 14px;
+  gap: 3px 14px;
   padding: 16px 0;
   border-top: 1px solid var(--trait);
 }
@@ -181,7 +254,8 @@ section p strong { color: var(--texte); font-weight: 600; }
 }
 .invariants .quoi { font-weight: 600; color: var(--texte); }
 .invariants .comment { grid-column: 2; font-size: 14.5px; color: var(--texte-doux); }
-.invariants code {
+
+code {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.88em;
   background: var(--surface-2);
@@ -189,20 +263,19 @@ section p strong { color: var(--texte); font-weight: 600; }
   color: var(--texte);
 }
 
-/* --- Decisions : probleme / reponse -------------------------- */
+/* --- Decisions ----------------------------------------------- */
 .decisions { display: flex; flex-direction: column; gap: 2px; margin-top: 28px; }
 .decision {
   background: var(--surface);
   border: 1px solid var(--trait);
   padding: 22px 24px;
 }
-.decision h3 { font-size: 17px; margin-bottom: 10px; }
+.decision h3 { font-size: 17px; margin-bottom: 9px; }
 .decision p { font-size: 14.5px; }
 .decision .pourquoi {
   margin-top: 12px; padding-top: 12px;
   border-top: 1px dashed var(--trait);
   font-size: 14px;
-  color: var(--texte-doux);
 }
 .decision .pourquoi b {
   font-family: 'IBM Plex Mono', monospace;
@@ -211,36 +284,7 @@ section p strong { color: var(--texte); font-weight: 600; }
   display: block; margin-bottom: 5px; font-weight: 500;
 }
 
-/* --- Captures ------------------------------------------------ */
-/* Quatre captures d'ecrans de hauteurs tres differentes : sans
-   hauteur commune, la grille se desaligne et la derniere image
-   s'etire seule. On cadre le haut de chaque ecran, qui est la
-   partie qui porte l'information. */
-.captures {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-top: 28px;
-}
-figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
-figure img {
-  width: 100%;
-  height: 260px;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
-  border: 1px solid var(--trait);
-  background: var(--surface);
-  border-radius: 2px;
-}
-@media (max-width: 620px) {
-  .captures { grid-template-columns: repeat(2, 1fr); }
-  figure img { height: 220px; }
-}
-figcaption { font-size: 13px; color: var(--texte-doux); line-height: 1.45; }
-figcaption b { color: var(--texte); font-weight: 600; display: block; }
-
-/* --- Pile technique ------------------------------------------ */
+/* --- Pile ---------------------------------------------------- */
 .pile { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 24px; }
 .pile span {
   font-family: 'IBM Plex Mono', monospace;
@@ -253,10 +297,10 @@ figcaption b { color: var(--texte); font-weight: 600; display: block; }
 }
 
 /* --- Etat ---------------------------------------------------- */
-.etat { display: flex; flex-direction: column; margin-top: 24px; }
+.etat { margin-top: 24px; }
 .etat div {
-  display: grid; grid-template-columns: 5.5rem 1fr; gap: 14px;
-  padding: 11px 0;
+  display: grid; grid-template-columns: 5.6rem 1fr; gap: 14px;
+  padding: 12px 0;
   border-top: 1px solid var(--trait);
   font-size: 14.5px;
 }
@@ -266,7 +310,7 @@ figcaption b { color: var(--texte); font-weight: 600; display: block; }
   font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
   font-weight: 500; padding-top: 3px;
 }
-.etat .fait { color: var(--vert); }
+.etat .fait  { color: var(--vert); }
 .etat .cours { color: var(--or); }
 .etat .reste { color: var(--texte-faible); }
 .etat p { color: var(--texte-doux); }
@@ -275,18 +319,21 @@ figcaption b { color: var(--texte); font-weight: 600; display: block; }
 footer {
   background: var(--ancre);
   color: #94a89e;
-  padding: 40px 0;
+  padding: 42px 0;
   font-size: 13.5px;
 }
 footer a { color: var(--or-vif); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
 footer p + p { margin-top: 10px; }
 
-@media (max-width: 560px) {
-  .bandeau { padding: 52px 0 44px; }
+@media (max-width: 620px) {
+  .bandeau { padding: 54px 0 44px; }
   section { padding: 46px 0; }
+  .ecrans { grid-template-columns: repeat(2, 1fr); gap: 20px 14px; }
+  figure img { height: 260px; }
+  figure.pivot img { max-height: 480px; }
   .invariants li { grid-template-columns: 1.9rem 1fr; }
-  .etat div { grid-template-columns: 1fr; gap: 3px; }
+  .etat div { grid-template-columns: 1fr; gap: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -297,8 +344,8 @@ footer p + p { margin-top: 10px; }
 <body>
 
 <header class="bandeau">
-  <div class="enveloppe">
-    <div class="oeil">Projet personnel · Cameroun · 2026</div>
+  <div class="lecture">
+    <div class="oeil">Étude de cas · Cameroun · 2026</div>
     <h1>Savoir qui conduit, avant de monter</h1>
     <p class="accroche">
       Monter dans un taxi au Cameroun, c'est faire confiance à un inconnu sans
@@ -314,9 +361,9 @@ footer p + p { margin-top: 10px; }
     </div>
 
     <div class="chiffres">
-      <div class="chiffre"><b>6&#8239;398</b><span>lignes TypeScript</span></div>
+      <div class="chiffre"><b>7&#8239;238</b><span>lignes TypeScript</span></div>
       <div class="chiffre"><b>20</b><span>tables</span></div>
-      <div class="chiffre"><b>172</b><span>tests</span></div>
+      <div class="chiffre"><b>192</b><span>tests</span></div>
       <div class="chiffre"><b>0</b><span>dépendance ORM</span></div>
     </div>
   </div>
@@ -325,7 +372,7 @@ footer p + p { margin-top: 10px; }
 <main>
 
 <section>
-  <div class="enveloppe">
+  <div class="lecture">
     <div class="titre-section">Le problème</div>
     <h2>Il n'existe aucun registre consultable</h2>
     <p>
@@ -345,32 +392,158 @@ footer p + p { margin-top: 10px; }
 </section>
 
 <section>
-  <div class="enveloppe">
-    <div class="titre-section">Ce que le passager voit</div>
-    <h2>Trois écrans, aucune installation</h2>
-    <div class="captures">
-      <figure>
-        <img src="captures/1-scan.png" alt="Écran de scan : nom du chauffeur, plaque, statut vérifié et autorité de rattachement.">
-        <figcaption><b>Le scan</b>L'écran qui décide si on monte.</figcaption>
-      </figure>
-      <figure>
-        <img src="captures/2-trajet.png" alt="Écran de suivi de trajet avec le tracé du parcours et le bouton de partage.">
-        <figcaption><b>Le trajet</b>Partagé à un proche par SMS.</figcaption>
-      </figure>
-      <figure>
-        <img src="captures/3-alerte.png" alt="Écran d'alerte déclenchée, avec la position transmise aux proches et à l'autorité.">
-        <figcaption><b>L'alerte</b>Un appui, la position part.</figcaption>
-      </figure>
-      <figure>
-        <img src="captures/9-qr.png" alt="Code QR généré pour un chauffeur validé, prêt à être imprimé et collé dans le taxi.">
-        <figcaption><b>Le QR</b>Émis seulement après validation.</figcaption>
-      </figure>
+  <div class="etendu">
+    <div class="titre-section">Les écrans</div>
+    <h2>Trois parcours, aucune installation</h2>
+    <p style="max-width:70ch">
+      Chaque écran est apparié à la décision qu'il porte. Une capture sans
+      explication ne prouve rien ; une explication sans capture ne se vérifie
+      pas.
+    </p>
+
+    <!-- ------------------------------------------------------- -->
+    <div class="parcours">
+      <div class="parcours-titre">
+        <h3>Le passager</h3>
+        <span class="qui">aucun compte, aucune application</span>
+      </div>
+
+      <div class="ecrans">
+        <figure>
+          <img src="captures/1-scan.png" alt="Écran de scan : mention VÉRIFIÉ, nom du chauffeur, plaque, autorité de validation et référence de licence.">
+          <figcaption>
+            <b>Le scan</b>
+            L'écran qui décide si on monte. La plaque est affichée pour être
+            comparée à celle du véhicule.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/5-refus.png" alt="Écran rouge CODE NON RECONNU, avec le conseil de ne pas monter sans vérifier autrement.">
+          <figcaption>
+            <b>Le refus</b>
+            Un code périmé ou révoqué ne renvoie rien de flou : il refuse, et
+            dit quoi faire. Un produit qui échoue mal serait pire que rien.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/2-trajet.png" alt="Écran de suivi de trajet en cours, avec bouton d'alerte et champ de partage à un proche.">
+          <figcaption>
+            <b>Le trajet</b>
+            Partagé à un proche par SMS. Le proche n'installe rien et ne crée
+            aucun compte.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/3-alerte.png" alt="Écran d'alerte déclenchée : bandeau rouge indiquant que les proches et l'autorité reçoivent la position.">
+          <figcaption>
+            <b>L'alerte</b>
+            Un appui. Le double appui ne crée pas de doublon : quelqu'un qui
+            panique appuie plusieurs fois.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/itineraire.png" alt="Page de suivi montrant le tracé du parcours accompli et la distance de 4,1 km.">
+          <figcaption>
+            <b>L'itinéraire</b>
+            Un tracé SVG calculé à partir des positions, sans fond de carte —
+            aucune bibliothèque à charger au moment où la page doit rester
+            légère.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/11-objet-oublie.png" alt="Écran d'objet oublié après la course, avec la référence de dossier et le numéro du call center.">
+          <figcaption>
+            <b>L'objet oublié</b>
+            Une référence et le numéro d'un call center. Le numéro personnel du
+            chauffeur n'est jamais communiqué.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------- -->
+    <div class="parcours">
+      <div class="parcours-titre">
+        <h3>Le chauffeur</h3>
+        <span class="qui">un compte, un dossier, un QR</span>
+      </div>
+
+      <div class="ecrans">
+        <figure>
+          <img src="captures/6-inscription.png" alt="Formulaire d'inscription du chauffeur : nom, téléphone, ville et véhicule.">
+          <figcaption>
+            <b>L'inscription</b>
+            Nom, téléphone, ville, véhicule. À ce stade, aucun code QR
+            n'existe.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <img src="captures/8-dossier-complet.png" alt="Dossier chauffeur avec les quatre pièces déposées et en attente d'examen.">
+          <figcaption>
+            <b>Le dossier</b>
+            Quatre pièces obligatoires : CNI recto et verso, permis, carte
+            grise. Déposées ne veut pas dire acceptées.
+          </figcaption>
+        </figure>
+
+        <figure class="bas">
+          <img src="captures/9-qr.png" alt="Écran chauffeur affichant le code QR obtenu après validation, prêt à imprimer.">
+          <figcaption>
+            <b>Le code QR</b>
+            Obtenu après validation, à imprimer et coller dans le véhicule.
+            C'est aussi une preuve de paiement, valable six mois.
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------- -->
+    <div class="parcours">
+      <div class="parcours-titre">
+        <h3>L'agent communal</h3>
+        <span class="qui">celui qui engage l'autorité</span>
+      </div>
+
+      <div class="ecrans">
+        <figure class="court">
+          <img src="captures/agent-file.png" alt="File de validation : deux dossiers en attente dans la commune de l'agent, avec le compte de pièces jugées lisibles.">
+          <figcaption>
+            <b>La file</b>
+            « 2 dossiers en attente dans <em>votre</em> commune ». Le
+            cloisonnement vient du jeton de l'agent, jamais d'un paramètre
+            d'URL.
+          </figcaption>
+        </figure>
+
+        <figure class="pivot">
+          <img src="captures/agent-examen.png" alt="Écran d'examen d'un dossier : chaque pièce est dépliée avec les verdicts lisible, illisible, expirée ou non conforme ; le compteur affiche 0 sur 4 pièces jugées lisibles et le bouton de validation est grisé.">
+          <figcaption>
+            <b>L'examen — l'écran qui tient tout le produit</b>
+            Chaque pièce est ouverte, comparée au chauffeur, et reçoit un
+            verdict : lisible, illisible, expirée, non conforme. Le compteur
+            affiche <strong>0 / 4 pièces requises jugées lisibles</strong> et le
+            bouton « Valider et produire le code QR » reste grisé.
+            <br><br>
+            Ce grisement n'est qu'un confort d'affichage — le serveur refuse de
+            toute façon. C'est là que se joue la crédibilité de la plateforme :
+            la référence de licence que verra le passager ne peut pas exister
+            sans qu'un agent ait réellement vu les documents. Un rejet exige un
+            motif écrit, que le chauffeur lira.
+          </figcaption>
+        </figure>
+      </div>
     </div>
   </div>
 </section>
 
 <section>
-  <div class="enveloppe">
+  <div class="lecture">
     <div class="titre-section">Les invariants</div>
     <h2>Six façons dont le produit pourrait mentir</h2>
     <p>
@@ -407,14 +580,14 @@ footer p + p { margin-top: 10px; }
       <li>
         <span class="n">06</span>
         <span class="quoi">Un agent ne voit que sa ville</span>
-        <span class="comment">La file de validation est filtrée sur l'autorité portée par le jeton, jamais sur un paramètre d'URL.</span>
+        <span class="comment">La file de validation est filtrée sur l'autorité portée par son jeton, jamais sur un paramètre d'URL.</span>
       </li>
     </ol>
   </div>
 </section>
 
 <section>
-  <div class="enveloppe">
+  <div class="lecture">
     <div class="titre-section">Décisions</div>
     <h2>Ce que j'ai choisi, et pourquoi</h2>
 
@@ -450,6 +623,21 @@ footer p + p { margin-top: 10px; }
       </article>
 
       <article class="decision">
+        <h3>On encaisse après la validation, jamais avant</h3>
+        <p>
+          L'agent examine les pièces et valide ; le code QR n'est émis qu'une
+          fois les frais réglés.
+        </p>
+        <p class="pourquoi">
+          <b>Le raisonnement</b>
+          Encaisser d'abord obligerait à rembourser un dossier rejeté — donc une
+          procédure, un litige possible, et du code pour le gérer. Ainsi, un
+          dossier rejeté n'a rien encaissé. Le montant n'est jamais fourni par
+          le client : il est lu dans la table de l'autorité.
+        </p>
+      </article>
+
+      <article class="decision">
         <h3>Le numéro du chauffeur ne sort d'aucune API passager</h3>
         <p>
           Pour un objet oublié, le passager obtient une référence et le numéro
@@ -474,7 +662,7 @@ footer p + p { margin-top: 10px; }
           <b>Le raisonnement</b>
           Les pièces portent un nom aléatoire, ne sont jamais servies
           statiquement, et leur signature binaire est vérifiée au dépôt : un
-          fichier qui se déclare image mais n'en est pas est refusé.
+          fichier qui se déclare image sans en être une est refusé.
         </p>
       </article>
 
@@ -487,9 +675,8 @@ footer p + p { margin-top: 10px; }
         <p class="pourquoi">
           <b>Le raisonnement</b>
           Un fichier manquant en production n'est pas un risque acceptable pour
-          cet écran-là. C'est aussi pourquoi le tracé du trajet est un SVG
-          calculé, sans fond de carte : pas de bibliothèque à charger au moment
-          où la page doit rester légère.
+          cet écran-là. Même raison pour le tracé du trajet, calculé en SVG
+          plutôt que confié à une carte à tuiles.
         </p>
       </article>
 
@@ -509,7 +696,7 @@ footer p + p { margin-top: 10px; }
 </section>
 
 <section>
-  <div class="enveloppe">
+  <div class="lecture">
     <div class="titre-section">Construction</div>
     <h2>Un seul serveur sert tout</h2>
     <p>
@@ -521,7 +708,9 @@ footer p + p { margin-top: 10px; }
     <p>
       Le HTTPS n'est pas un confort ici : les navigateurs refusent la
       géolocalisation hors <code>localhost</code> sans lui, donc sans certificat
-      le suivi de trajet ne fonctionne pas du tout.
+      le suivi de trajet ne fonctionne pas du tout. Un service d'entretien
+      sauvegarde chaque nuit et purge les traces GPS à trente jours, comme
+      l'exige la loi camerounaise n° 2024/017.
     </p>
     <div class="pile">
       <span>NestJS</span><span>TypeScript</span><span>PostgreSQL</span>
@@ -532,7 +721,7 @@ footer p + p { margin-top: 10px; }
 </section>
 
 <section>
-  <div class="enveloppe">
+  <div class="lecture">
     <div class="titre-section">État</div>
     <h2>Où en est le projet</h2>
     <div class="etat">
@@ -542,11 +731,15 @@ footer p + p { margin-top: 10px; }
       </div>
       <div>
         <span class="marque fait">Fait</span>
-        <p>Déploiement en conteneurs avec HTTPS automatique, sauvegardes nocturnes et purge des traces GPS à 30 jours — une obligation de la loi camerounaise n° 2024/017.</p>
+        <p>Le paiement des frais d'émission. Le mode guichet est complet et ne dépend d'aucun tiers : un agent encaisse, le QR est émis dans la même transaction.</p>
+      </div>
+      <div>
+        <span class="marque fait">Fait</span>
+        <p>Déploiement en conteneurs avec HTTPS automatique, sauvegardes nocturnes et purge légale des traces GPS. Restauration vérifiée de bout en bout.</p>
       </div>
       <div>
         <span class="marque cours">En cours</span>
-        <p>Le paiement des frais d'émission du QR. Le schéma est en place et testé ; le code applicatif reste à écrire.</p>
+        <p>Le raccordement Mobile Money. L'ouverture et la confirmation d'un paiement sont écrites ; le choix entre un agrégateur et les opérateurs en direct reste à faire.</p>
       </div>
       <div>
         <span class="marque reste">À venir</span>
@@ -559,7 +752,7 @@ footer p + p { margin-top: 10px; }
 </main>
 
 <footer>
-  <div class="enveloppe">
+  <div class="lecture">
     <p><strong style="color:#eef2ef">Sécurité Taxi Cameroun</strong> — projet personnel, développé en 2026.</p>
     <p><a href="https://github.com/Fanoelle/Securite-taxi">github.com/Fanoelle/Securite-taxi</a></p>
   </div>

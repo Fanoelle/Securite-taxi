@@ -29,3 +29,7 @@ test-visuel/.chr/
 
 # Les sauvegardes : des donnees personnelles, jamais dans le depot.
 sauvegardes/
+
+# Copies de sauvegarde du .env : des secrets, jamais dans le depot.
+.env.avant-*
+api/.env.avant-*
